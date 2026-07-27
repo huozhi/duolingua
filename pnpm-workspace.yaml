@@ -1,0 +1,11 @@
+packages:
+  - .
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
+# onnxruntime-node's install script downloads the native ONNX Runtime libraries.
+# Without it, the shipped `.node` binding cannot dlopen its shared library and
+# transformers.js silently falls back to WebAssembly — slower, and it fails
+# outright inside Next's standalone server.
+onlyBuiltDependencies:
+  - onnxruntime-node

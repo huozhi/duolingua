@@ -1,0 +1,20 @@
+# Raw dictionary sources: 375MB of Wiktionary and HanDeDict downloads. The build
+# uses the compiled shards in data/dict, which are committed.
+data/raw
+
+# Local model cache — the image fetches its own in a dedicated stage.
+.cache
+
+# Build output and dependencies, rebuilt inside the image.
+node_modules
+.next
+out
+
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md
+*.log
+.DS_Store
+.env*

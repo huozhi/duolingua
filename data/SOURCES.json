@@ -1,0 +1,38 @@
+[
+  {
+    "id": "dewiktionary",
+    "file": "dewiktionary-raw.jsonl.gz",
+    "url": "https://kaikki.org/dewiktionary/raw-wiktextract-data.jsonl.gz",
+    "title": "German Wiktionary, extracted by wiktextract (kaikki.org)",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "de.wiktionary.org contributors; extraction by Tatu Ylönen (wiktextract)",
+    "use": "German lemmas, parts of speech, noun gender, inflected forms, and translations into English, Spanish and Chinese",
+    "bytes": 300450106,
+    "fetchedAt": "2026-07-26T22:03:30.536Z"
+  },
+  {
+    "id": "handedict",
+    "file": "handedict.u8",
+    "url": "https://raw.githubusercontent.com/gugray/HanDeDict/master/handedict.u8",
+    "title": "HanDeDict — collaborative Chinese-German dictionary",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "attribution": "HanDeDict contributors; originally supported by Chinesisch-Deutsche Gesellschaft e.V. Hamburg",
+    "use": "German → Chinese glosses with pinyin, inverted from the Chinese → German direction",
+    "bytes": 61489641,
+    "fetchedAt": "2026-07-26T22:03:34.695Z"
+  },
+  {
+    "id": "frequency",
+    "file": "de_50k.txt",
+    "url": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/de/de_50k.txt",
+    "title": "FrequencyWords — German word frequencies from OpenSubtitles",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "Hermit Dave, derived from the OpenSubtitles corpus",
+    "use": "frequency ranking, used to decide which lemmas are worth shipping",
+    "bytes": 662497,
+    "fetchedAt": "2026-07-26T22:03:34.927Z"
+  }
+]

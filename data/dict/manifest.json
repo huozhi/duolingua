@@ -1,0 +1,52 @@
+{
+  "version": "eb38c9028b81",
+  "generatedAt": "2026-07-27T13:50:20.309Z",
+  "shardCount": 256,
+  "families": {
+    "w": {
+      "files": 256,
+      "lines": 97173,
+      "bytes": 3017347
+    },
+    "f": {
+      "files": 256,
+      "lines": 596511,
+      "bytes": 6577865
+    }
+  },
+  "coverage": {
+    "lemmas": 97173,
+    "en": 73466,
+    "es": 36381,
+    "zh": 44295
+  },
+  "sources": [
+    {
+      "id": "dewiktionary",
+      "title": "German Wiktionary, extracted by wiktextract (kaikki.org)",
+      "url": "https://kaikki.org/dewiktionary/raw-wiktextract-data.jsonl.gz",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "de.wiktionary.org contributors; extraction by Tatu Ylönen (wiktextract)",
+      "use": "German lemmas, parts of speech, noun gender, inflected forms, and translations into English, Spanish and Chinese"
+    },
+    {
+      "id": "handedict",
+      "title": "HanDeDict — collaborative Chinese-German dictionary",
+      "url": "https://raw.githubusercontent.com/gugray/HanDeDict/master/handedict.u8",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "attribution": "HanDeDict contributors; originally supported by Chinesisch-Deutsche Gesellschaft e.V. Hamburg",
+      "use": "German → Chinese glosses with pinyin, inverted from the Chinese → German direction"
+    },
+    {
+      "id": "frequency",
+      "title": "FrequencyWords — German word frequencies from OpenSubtitles",
+      "url": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/de/de_50k.txt",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "Hermit Dave, derived from the OpenSubtitles corpus",
+      "use": "frequency ranking, used to decide which lemmas are worth shipping"
+    }
+  ]
+}
