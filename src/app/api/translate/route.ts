@@ -1,23 +1,31 @@
 import { NextResponse } from "next/server";
-import { TARGETS, type Target } from "@/lib/analysis";
-import { isPivoted } from "@/lib/mtModels";
+import { LANGS, type Lang } from "@/lib/analysis";
+import { asLang, detectLanguage } from "@/lib/detect";
+import { isPivoted, targetsFor } from "@/lib/mtModels";
 import { translateAll } from "@/server/mt";
 
 /** Native ONNX Runtime is a Node addon, so this cannot run on the edge. */
 export const runtime = "nodejs";
 
-/** Loading a cold model takes a few seconds; three of them can take longer. */
+/** Loading a cold model takes a few seconds; a two-hop route loads two. */
 export const maxDuration = 120;
 
 const MAX_LENGTH = 600;
 
-function parseTargets(value: unknown): Target[] | null {
-  if (value === undefined) return [...TARGETS];
+/**
+ * The languages asked for, defaulting to every language but the source. Returns
+ * null when the request named something we do not translate.
+ */
+function parseTargets(value: unknown, source: Lang): Lang[] | null {
+  if (value === undefined) return targetsFor(source);
   if (!Array.isArray(value)) return null;
 
-  const targets = value.filter((item): item is Target => TARGETS.includes(item as Target));
-  if (targets.length !== value.length) return null;
-  return targets.length ? targets : [...TARGETS];
+  const targets = value.map(asLang);
+  if (targets.some((target) => target === null)) return null;
+
+  // Asking for the source language back is a no-op, not an error.
+  const wanted = (targets as Lang[]).filter((target) => target !== source);
+  return wanted.length ? [...new Set(wanted)] : targetsFor(source);
 }
 
 export async function POST(request: Request) {
@@ -28,7 +36,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const { sentence, targets } = (body ?? {}) as { sentence?: unknown; targets?: unknown };
+  const { sentence, source, targets } = (body ?? {}) as {
+    sentence?: unknown;
+    source?: unknown;
+    targets?: unknown;
+  };
 
   if (typeof sentence !== "string" || !sentence.trim()) {
     return NextResponse.json({ error: "Please provide a sentence." }, { status: 400 });
@@ -39,20 +51,31 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  if (source !== undefined && asLang(source) === null) {
+    return NextResponse.json(
+      { error: `source must be one of ${LANGS.join(", ")}.` },
+      { status: 400 },
+    );
+  }
 
-  const wanted = parseTargets(targets);
+  // Detection runs either way, so the response can report what it saw even when
+  // the caller overrode it.
+  const detected = detectLanguage(sentence);
+  const from = asLang(source) ?? detected.lang;
+
+  const wanted = parseTargets(targets, from);
   if (!wanted) {
     return NextResponse.json(
-      { error: `targets must be a subset of ${TARGETS.join(", ")}.` },
+      { error: `targets must be a subset of ${LANGS.join(", ")}.` },
       { status: 400 },
     );
   }
 
   try {
-    const results = await translateAll(wanted, sentence.trim());
+    const results = await translateAll(from, wanted, sentence.trim());
 
-    const translations: Partial<Record<Target, string>> = {};
-    const fromDictionary: Target[] = [];
+    const translations: Partial<Record<Lang, string>> = {};
+    const fromDictionary: Lang[] = [];
     for (const target of wanted) {
       const result = results[target];
       if (!result) continue;
@@ -61,11 +84,15 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
+      source: from,
+      detected,
       translations,
-      // Provenance, so the client can be explicit about it: a single word is
+      // Provenance, so the client can be explicit: a single German word is
       // answered from the dictionary and never goes through English.
       fromDictionary,
-      viaEnglish: wanted.filter((target) => isPivoted(target) && !fromDictionary.includes(target)),
+      viaEnglish: wanted.filter(
+        (target) => isPivoted(from, target) && !fromDictionary.includes(target),
+      ),
     });
   } catch (error) {
     console.error("translate failed:", error);

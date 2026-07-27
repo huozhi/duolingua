@@ -11,8 +11,8 @@
  */
 
 import { env, pipeline, type TranslationPipeline } from "@huggingface/transformers";
-import type { Target } from "../lib/analysis.ts";
-import { ALL_MODELS, CHAINS } from "../lib/mtModels.ts";
+import type { Lang, Target } from "../lib/analysis.ts";
+import { ALL_MODELS, chainFor } from "../lib/mtModels.ts";
 import { collapseRepetition, joinSentences, splitSentences } from "./degeneration.ts";
 import { resolve } from "../lib/morphology.ts";
 import { dictStore } from "./dict.ts";
@@ -88,35 +88,44 @@ export type Translation = {
 };
 
 /**
- * Translate German text.
+ * Translate text from one language into another.
  *
- * A single word is answered from the dictionary, not the model. These are
+ * A single German word is answered from the dictionary, not the model. These are
  * *sentence* models, and on an isolated word they are unreliable in a way that is
- * hard to defend: `Nein` comes back as "Yes". Every longer negation is fine —
+ * hard to defend: `Nein` came back as "Yes". Every longer negation is fine —
  * "Nicht heute", "Kein Problem", "Nein danke" all translate correctly — so the
  * failure is specific to bare words, which is exactly the shape a dictionary
- * handles better. We happen to ship a good one.
+ * handles better. We happen to ship a good one, for German.
+ *
+ * That safety net therefore only covers German sources; a bare word in English,
+ * Spanish or Chinese goes to the model and keeps the model's weakness.
  *
  * Anything longer is split into sentences and translated one at a time, because
  * these models handle exactly one sentence per call and quietly drop the rest.
  */
-export async function translate(target: Target, text: string): Promise<Translation> {
-  const fromDictionary = await dictionaryGloss(target, text);
+export async function translate(source: Lang, target: Lang, text: string): Promise<Translation> {
+  if (source === target) return { text: text.trim(), fromDictionary: false };
+
+  const fromDictionary = await dictionaryGloss(source, target, text);
   if (fromDictionary) return { text: fromDictionary, fromDictionary: true };
 
   const translated: string[] = [];
   for (const sentence of splitSentences(text)) {
-    translated.push(await translateSentence(target, sentence));
+    translated.push(await translateSentence(source, target, sentence));
   }
   return { text: joinSentences(translated), fromDictionary: false };
 }
 
 /**
- * The dictionary's best gloss for a single word, or null — either because the input
- * is not one word, or because we have no gloss for it in this language and the
- * model is the better of the two remaining options.
+ * The dictionary's best gloss for a single word, or null.
+ *
+ * Only for German sources, and never into German: the dictionary maps German
+ * headwords to English, Spanish and Chinese glosses, so it has nothing to say
+ * about the other directions.
  */
-async function dictionaryGloss(target: Target, text: string): Promise<string | null> {
+async function dictionaryGloss(source: Lang, target: Lang, text: string): Promise<string | null> {
+  if (source !== "de" || target === "de") return null;
+
   const word = text.trim().replace(/[.!?,;:¿¡]+$/u, "");
   // One word only; anything with a space is a phrase and belongs to the model.
   if (!word || /\s/.test(word)) return null;
@@ -126,16 +135,16 @@ async function dictionaryGloss(target: Target, text: string): Promise<string | n
   // particle; only the particle carries a Chinese gloss, and insisting on the
   // noun would send Chinese back to the model that answers "yes".
   for (const candidate of await resolve(dictStore(), word)) {
-    const gloss = candidate.glosses[target][0];
+    const gloss = candidate.glosses[target as Target][0];
     if (gloss) return gloss.text;
   }
   return null;
 }
 
-async function translateSentence(target: Target, sentence: string): Promise<string> {
+async function translateSentence(source: Lang, target: Lang, sentence: string): Promise<string> {
   let current = sentence;
 
-  for (const model of CHAINS[target]) {
+  for (const model of chainFor(source, target)) {
     const translator = await load(model);
     const output = await translator(current, GENERATION);
     const first = Array.isArray(output) ? output[0] : output;
@@ -162,11 +171,12 @@ async function translateSentence(target: Target, sentence: string): Promise<stri
  * Chinese reuses the German → English hop, which is already resident by then.
  */
 export async function translateAll(
-  targets: readonly Target[],
+  source: Lang,
+  targets: readonly Lang[],
   sentence: string,
-): Promise<Partial<Record<Target, Translation>>> {
-  const translations: Partial<Record<Target, Translation>> = {};
-  for (const target of targets) translations[target] = await translate(target, sentence);
+): Promise<Partial<Record<Lang, Translation>>> {
+  const translations: Partial<Record<Lang, Translation>> = {};
+  for (const target of targets) translations[target] = await translate(source, target, sentence);
   return translations;
 }
 

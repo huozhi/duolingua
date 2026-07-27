@@ -7,7 +7,7 @@
  * `pnpm translate`.
  */
 
-import { CASE_ABBREV, TARGETS, TARGET_META, type Target } from "../src/lib/analysis.ts";
+import { CASE_ABBREV, LANG_META, TARGETS, type Target } from "../src/lib/analysis.ts";
 import type { Features } from "../src/lib/dictFormat.ts";
 import { resolve, type Candidate } from "../src/lib/morphology.ts";
 import { dictManifest, dictStore } from "../src/server/dict.ts";
@@ -81,7 +81,7 @@ for (const word of words) {
       const glosses = candidate.glosses[target];
       if (!glosses.length) continue;
       const text = glosses.map((g) => (g.pinyin ? `${g.text} [${g.pinyin}]` : g.text)).join(", ");
-      console.log(`     ${TARGET_META[target].label.padEnd(8)} ${text}`);
+      console.log(`     ${LANG_META[target].label.padEnd(8)} ${text}`);
     }
 
     // A compound is not in the dictionary at all; its parts are what carry meaning.

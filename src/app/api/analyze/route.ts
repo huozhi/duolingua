@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { asLang, detectLanguage } from "@/lib/detect";
 import { glossSentence } from "@/lib/gloss";
 import { dictStore } from "@/server/dict";
 
@@ -31,6 +32,21 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: `Sentence is too long (max ${MAX_LENGTH} characters).` },
       { status: 400 },
+    );
+  }
+
+  // German only, and worth refusing rather than obliging: the dictionary, the
+  // determiner paradigms, the compound splitter and every tagging rule are
+  // German. Fed Spanish, this would return a page of `other`-tagged tokens with
+  // no glosses, which looks like an answer and is not one.
+  const source = asLang((body as { source?: unknown }).source) ?? detectLanguage(sentence).lang;
+  if (source !== "de") {
+    return NextResponse.json(
+      {
+        error: "Word-by-word analysis is available for German only.",
+        detected: source,
+      },
+      { status: 422 },
     );
   }
 

@@ -28,11 +28,24 @@ export type Case = (typeof CASE)[number];
 export type GrammaticalNumber = (typeof NUMBER)[number];
 export type Person = "1" | "2" | "3";
 
-/** The languages we gloss and translate into. */
+/** Every language the app translates between. Any one can be the source. */
+export const LANGS = ["de", "en", "es", "zh"] as const;
+export type Lang = (typeof LANGS)[number];
+
+/**
+ * The languages the *dictionary* glosses into.
+ *
+ * Deliberately narrower than `Lang` and deliberately named differently: the
+ * dictionary is German → these three, and the on-disk shard format has exactly
+ * three gloss columns. Conflating the two would mean one word meaning two things
+ * and rebuilding all 512 shards to add a German column that would only ever hold
+ * the headword.
+ */
 export const TARGETS = ["en", "es", "zh"] as const;
 export type Target = (typeof TARGETS)[number];
 
-export const TARGET_META: Record<Target, { label: string; native: string; bcp47: string }> = {
+export const LANG_META: Record<Lang, { label: string; native: string; bcp47: string }> = {
+  de: { label: "German", native: "Deutsch", bcp47: "de" },
   en: { label: "English", native: "English", bcp47: "en" },
   es: { label: "Spanish", native: "Español", bcp47: "es" },
   zh: { label: "Chinese", native: "中文", bcp47: "zh-Hans" },

@@ -95,16 +95,17 @@ export default function Licenses() {
             license.
           </p>
           <ul className="mt-3 flex flex-col gap-1 text-sm text-neutral-600 dark:text-neutral-400">
-            <li>English — Xenova/opus-mt-de-en</li>
-            <li>Spanish — Xenova/opus-mt-de-es</li>
+            <li>Xenova/opus-mt-de-en · opus-mt-de-es</li>
+            <li>Xenova/opus-mt-en-de · opus-mt-en-es · opus-mt-en-zh</li>
+            <li>Xenova/opus-mt-es-en · opus-mt-zh-en</li>
             <li>
-              Chinese — Xenova/opus-mt-de-en then Xenova/opus-mt-en-zh. No German → Chinese ONNX
-              model exists, so Chinese is translated via English.
+              English is the hub: not every pair exists — there is no German → Chinese model — so
+              routes between two non-English languages run two of these in sequence.
             </li>
           </ul>
           <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
-            The dictionary, by contrast, is sent to your browser and stays there — word meanings and
-            grammar keep working with no network. Only full sentences need the server.
+            The dictionary covers German → English, Spanish and Chinese, which is why the
+            word-by-word breakdown appears for German input only.
           </p>
         </section>
       </main>

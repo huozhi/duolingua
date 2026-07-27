@@ -1,7 +1,7 @@
 # Was das?
 
-Paste a German sentence, read it in **English, Spanish and Chinese** — as a full sentence and word
-by word, with part of speech, case, gender and tense.
+Paste a sentence in **German, English, Spanish or Chinese**; read it in the other three. German input
+also gets a word-by-word breakdown with part of speech, case, gender and tense.
 
 No API key and no third-party translation service: the models run on your own server, and nothing
 is downloaded by the browser.
@@ -10,11 +10,23 @@ is downloaded by the browser.
 
 Both run on the server; the browser downloads nothing but the page.
 
-**The word layer** is a 9.6MB dictionary compiled from Wiktionary and HanDeDict, queried through
-`/api/analyze`. Lemma, part of speech, gender, case, number, tense and glosses in all three
-languages. No model is involved, so it answers in milliseconds.
+**The sentence layer** is OPUS-MT with English as the hub. Seven models cover all twelve directions:
+German, English and Spanish each have a direct pair with English, plus a direct German → Spanish, and
+anything between two non-English languages goes through English in two hops. Rows that took the detour
+say so. About 100ms per hop once warm.
 
-**The sentence layer** is OPUS-MT, about 100ms per sentence once warm, 0.36s for all three languages.
+**The word layer** is a 9.6MB dictionary compiled from Wiktionary and HanDeDict, queried through
+`/api/analyze`. Lemma, part of speech, gender, case, number, tense and glosses in English, Spanish
+and Chinese. No model is involved, so it answers in milliseconds. **German only** — the determiner
+paradigms, preposition cases, compound splitter and the dictionary itself are all German-specific, so
+other source languages get the three translations and nothing more.
+
+## Detecting the source
+
+The source language is detected in the browser as you type, from stopwords and orthography — no model,
+no round trip. On real sentences it is reliable; on bare words it is not, because `no` is genuinely
+both English and Spanish. So the guess is always shown as a selector you can override, and the API
+reports its confidence (0 meaning "this is a default, not a finding").
 
 A dictionary alone cannot do the sentence layer. German is verb-second in main clauses and verb-final
 in subordinate ones, case is syncretic, verbs separate from their prefixes, and compounds are
@@ -41,8 +53,10 @@ guessing.
 ## Terminal
 
 ```bash
-pnpm dict:lookup gelesen Häuser Bahnhofskatze   # instant; loads no models
+pnpm dict:lookup gelesen Häuser Bahnhofskatze   # instant; loads no models, German only
 pnpm translate "Wir müssen morgen früh zum Bahnhof fahren."
+pnpm translate "The dog jumps over the fence."   # detects English, gives de/es/zh
+pnpm translate --from es "No tengo ni idea."     # override the detection
 pnpm translate --targets en,zh --words "Mir ist kalt."
 ```
 
@@ -56,7 +70,7 @@ the current process; the first run downloads them unless `pnpm models:fetch` has
 pnpm install
 pnpm dict:fetch     # ~375MB of source data into data/raw/ (once)
 pnpm dict:build     # compiles data/dict/ — about 20 seconds
-pnpm models:fetch   # ~330MB of translation models (once)
+pnpm models:fetch   # ~780MB of translation models (once)
 pnpm dev
 ```
 
@@ -68,7 +82,7 @@ back to WebAssembly.
 ```bash
 pnpm build && pnpm start
 pnpm test           # format round-trips, dictionary integrity, sentence fixtures
-pnpm lint
+npx tsc --noEmit    # types; there is no linter in this project
 ```
 
 ## Deploying
@@ -84,15 +98,36 @@ The image bakes in both the dictionary and the models, so it runs with no outbou
 docker run --network none -p 3000:3000 was-das
 ```
 
-Expect roughly 900MB. `MODEL_CACHE_DIR` points at the baked weights; `/api/health` reports the
-dictionary version and which models are resident without loading any, so it is safe as a probe.
+Expect ~1.15GB on disk — the seven models are 780MB of it.
+
+Memory is the number to plan around. Models load lazily and stay resident, and an ONNX session costs
+far more than its weights on disk (~400MB of RSS per model against ~110MB of q8 weights). Measured in
+the container:
+
+| Loaded | Resident |
+|--------|----------|
+| none, just booted | 52 MiB |
+| 1 model (German → English) | 514 MiB |
+| 3 models (German → all) | 1.35 GiB |
+| all 7 (every direction used) | 2.92 GiB |
+
+So a container that only ever sees one direction is small, and one exercising all twelve wants ~3GB.
+Do not set a 1GB limit and expect every language pair to work.
+
+`MODEL_CACHE_DIR` points at the baked weights. `/api/health` reports the dictionary version and which
+models are resident without loading any, so it is safe as a probe — and useful for watching the table
+above fill up.
 
 ## API
 
 ```bash
 curl -sX POST localhost:3000/api/translate -H 'content-type: application/json' \
-  -d '{"sentence":"Der Hund springt über den Zaun.","targets":["en","zh"]}'
-# {"translations":{...},"fromDictionary":[],"viaEnglish":["zh"]}
+  -d '{"sentence":"The dog jumps over the fence."}'
+# {"source":"en","detected":{"lang":"en","confidence":0.33},"translations":{...},"viaEnglish":[]}
+
+# `source` overrides detection; `targets` narrows the output.
+curl -sX POST localhost:3000/api/translate -H 'content-type: application/json' \
+  -d '{"sentence":"no","source":"es","targets":["de"]}'
 
 curl -sX POST localhost:3000/api/translate -H 'content-type: application/json' -d '{"sentence":"Nein"}'
 # {"translations":{"en":"no","es":"no","zh":"不是"},"fromDictionary":["en","es","zh"],"viaEnglish":[]}
@@ -134,9 +169,16 @@ Decisions worth knowing about:
   browser, so any static host works with no `Content-Encoding` negotiation to get wrong.
 - **Adjective declensions are not stored.** German adjective endings are a closed set, so stripping
   them at runtime is exact and removes ~850k rows.
-- **Chinese is translated via English.** No German → Chinese ONNX model exists, and the Helsinki
-  `de-ZH` pair it would come from is low-resource; two well-trained hops beat one weak one. Rows
-  translated this way say so.
+- **The package is ESM** (`"type": "module"`). Without it Node parses every `.ts` script as CommonJS,
+  fails, and reparses — which is what the `MODULE_TYPELESS_PACKAGE_JSON` warning was about. Next
+  notices the field and emits an ESM `server.js` for the standalone build, so the Docker image is
+  unaffected.
+- **English is the hub.** OPUS-MT publishes one model per ordered pair and not all of them exist —
+  there is no German → Chinese model at all. Rather than ship a weak direct pair, routes between two
+  non-English languages take two well-trained hops through English, and the UI says which rows did.
+- **The bare-word dictionary net only covers German.** A single German word is answered from the
+  dictionary because the models are unreliable on isolated words. There is no equivalent for English,
+  Spanish or Chinese sources, so a bare word in those languages keeps the model's weakness.
 - **A lowercase word never matches an all-caps abbreviation.** Lookup keys are case-folded so
   sentence-initial `Der` finds `der`, which also made `zum` match the abbreviation `ZUM` and offer
   "bus terminal" as a reading. `ARD` still resolves; `ard` no longer does.

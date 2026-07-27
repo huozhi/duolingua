@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TARGETS, TARGET_META, type Target } from "@/lib/analysis";
-import { isPivoted } from "@/lib/mtModels";
+import { LANG_META, type Lang } from "@/lib/analysis";
+import { isPivoted, targetsFor } from "@/lib/mtModels";
 
 type Result = {
-  translations: Partial<Record<Target, string>>;
+  translations: Partial<Record<Lang, string>>;
   /** Targets answered from the dictionary rather than by a model. */
-  fromDictionary: Target[];
+  fromDictionary: Lang[];
 };
 
 type State =
@@ -16,19 +16,15 @@ type State =
   | { status: "error"; message: string };
 
 /**
- * Full-sentence translation, fetched from the server.
+ * The sentence in the three languages that are not the source.
  *
- * The models run server-side, so there is nothing for the reader to download and
- * nothing to consent to — all three languages are requested as soon as a sentence
- * is analysed, in one request.
- *
- * This is the one part of the app that needs the network. The word layer below it
- * is served from a precached dictionary and keeps working without one, which is
- * why a failure here is reported as its own small message rather than as an error
- * for the whole page.
+ * The models run server-side, so there is nothing to download and nothing to
+ * consent to — all three are requested as soon as a sentence is submitted, in one
+ * request.
  */
-export default function SentencePanel({ sentence }: { sentence: string }) {
+export default function SentencePanel({ source, sentence }: { source: Lang; sentence: string }) {
   const [state, setState] = useState<State>({ status: "translating" });
+  const targets = targetsFor(source);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -38,7 +34,7 @@ export default function SentencePanel({ sentence }: { sentence: string }) {
         const response = await fetch("/api/translate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sentence }),
+          body: JSON.stringify({ sentence, source }),
           signal: controller.signal,
         });
         const data = await response.json();
@@ -63,7 +59,7 @@ export default function SentencePanel({ sentence }: { sentence: string }) {
     })();
 
     return () => controller.abort();
-  }, [sentence]);
+  }, [sentence, source]);
 
   if (state.status === "error") {
     return (
@@ -77,8 +73,8 @@ export default function SentencePanel({ sentence }: { sentence: string }) {
 
   return (
     <div className="flex flex-col divide-y divide-neutral-200 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 dark:bg-neutral-900">
-      {TARGETS.map((target) => {
-        const meta = TARGET_META[target];
+      {targets.map((target) => {
+        const meta = LANG_META[target];
         const text = state.status === "done" ? state.translations[target] : undefined;
         const fromDictionary = state.status === "done" && state.fromDictionary.includes(target);
 
@@ -99,9 +95,10 @@ export default function SentencePanel({ sentence }: { sentence: string }) {
                   </p>
                   {fromDictionary
                     ? null
-                    : isPivoted(target) && (
+                    : isPivoted(source, target) && (
                         <p className="text-xs text-neutral-400">
-                          via English — no direct German → {meta.label} model exists
+                          via English — no direct {LANG_META[source].label} → {meta.label} model
+                          exists
                         </p>
                       )}
                 </div>
