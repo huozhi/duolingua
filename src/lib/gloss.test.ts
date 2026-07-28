@@ -13,7 +13,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 
 import type { Analysis, Word } from "./analysis.ts";
-import { createDictStore } from "./dictStore.ts";
+import { createDictStore } from "./dict-store.ts";
 import { glossSentence } from "./gloss.ts";
 
 const DICT_DIR = join(import.meta.dirname, "..", "..", "data", "dict");

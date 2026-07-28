@@ -18,7 +18,7 @@
 
 import type { Case, Gender, GrammaticalNumber, Person, Pos, Word } from "./analysis.ts";
 import { emptyGlosses } from "./analysis.ts";
-import type { Features } from "./dictFormat.ts";
+import type { Features } from "./dict-format.ts";
 import type { Candidate } from "./morphology.ts";
 import { isCapitalized } from "./morphology.ts";
 import {
@@ -30,7 +30,7 @@ import {
   closedClassPos,
   determinerAgreements,
   type Agreement,
-} from "./germanTables.ts";
+} from "./german-tables.ts";
 
 /** A token plus everything known about it before context is applied. */
 export type Slot = {

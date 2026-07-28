@@ -12,7 +12,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 
-import { createDictStore } from "./dictStore.ts";
+import { createDictStore } from "./dict-store.ts";
 
 const DICT_DIR = join(import.meta.dirname, "..", "..", "data", "dict");
 const built = existsSync(join(DICT_DIR, "manifest.json"));

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { LANGS, type Lang } from "./analysis.ts";
-import { ALL_MODELS, chainFor, isPivoted, targetsFor } from "./mtModels.ts";
+import { ALL_MODELS, chainFor, isPivoted, targetsFor } from "./mt-models.ts";
 
 const PAIRS: [Lang, Lang][] = LANGS.flatMap((source) =>
   LANGS.filter((target) => target !== source).map((target) => [source, target] as [Lang, Lang]),

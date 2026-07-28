@@ -1,5 +1,5 @@
 /**
- * Which model translates from which language into which, with English as the hub.
+ * Translation model routes, with English as the hub.
  *
  * OPUS-MT ships one model per ordered pair, and not every pair exists as an ONNX
  * build — there is no German → Chinese model at all, and the Helsinki `de-ZH` pair

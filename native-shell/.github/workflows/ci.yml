@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  # Where CI keeps the Native SDK framework checkout; the build
+  # override below points the app at it.
+  NATIVE_SDK_PATH: "../native-sdk"
+
+jobs:
+  test:
+    name: Logic Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - name: Fetch native-sdk
+        run: |
+          if [ ! -f "$NATIVE_SDK_PATH/build.zig" ]; then
+            git clone --depth 1 https://github.com/vercel-labs/native.git "$NATIVE_SDK_PATH"
+          fi
+      - run: zig build test -Dplatform=null -Dnative-sdk-path="$NATIVE_SDK_PATH"

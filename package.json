@@ -1,5 +1,5 @@
 {
-  "name": "was-das",
+  "name": "q4",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "app": "native dev native-shell -Dtrace=off",
+    "native:check": "native check native-shell",
+    "native:build": "native build native-shell",
     "test": "node --test \"src/**/*.test.ts\"",
     "dict:fetch": "node scripts/fetch-sources.ts",
     "dict:build": "node --max-old-space-size=8192 scripts/build-dict.ts",
@@ -21,6 +24,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@native-sdk/cli": "^0.6.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20",
     "@types/react": "^19",

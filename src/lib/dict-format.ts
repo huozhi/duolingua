@@ -13,7 +13,7 @@
  * `Content-Encoding` negotiation to get wrong.
  *
  * Serialization lives here; `build-dict.ts` writes through these helpers and
- * `dictStore.ts` reads through them, so the two can never drift apart.
+ * `dict-store.ts` reads through them, so the two can never drift apart.
  */
 
 import { emptyGlosses, type Case, type Gender, type GrammaticalNumber, type Gloss, type Glosses, type Person, type Pos, type Target } from "./analysis.ts";

@@ -12,7 +12,7 @@
 
 import { env, pipeline, type TranslationPipeline } from "@huggingface/transformers";
 import type { Lang, Target } from "../lib/analysis.ts";
-import { ALL_MODELS, chainFor } from "../lib/mtModels.ts";
+import { ALL_MODELS, chainFor } from "../lib/mt-models.ts";
 import { collapseRepetition, joinSentences, splitSentences } from "./degeneration.ts";
 import { resolve } from "../lib/morphology.ts";
 import { dictStore } from "./dict.ts";

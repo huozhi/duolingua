@@ -15,7 +15,7 @@
  *  3. Invert HanDeDict to get German → Chinese, because Wiktionary's Chinese
  *     coverage is thin (~6k German lemmas, versus ~80k for English).
  *  4. Keep lemmas that are either frequent or actually translatable, then emit
- *     gzipped TSV shards through `src/lib/dictFormat.ts`.
+ *     gzipped TSV shards through `src/lib/dict-format.ts`.
  *
  * Deliberate size trade-off: adjective declensions are *not* stored. German
  * adjective endings are a closed set (-e -en -em -er -es) and stripping them at
@@ -42,7 +42,7 @@ import {
   shardName,
   shardOf,
   type Features,
-} from "../src/lib/dictFormat.ts";
+} from "../src/lib/dict-format.ts";
 import {
   emptyGlosses,
   type Case,

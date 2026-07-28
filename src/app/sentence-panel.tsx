@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LANG_META, type Lang } from "@/lib/analysis";
-import { isPivoted, targetsFor } from "@/lib/mtModels";
+import { targetsFor } from "@/lib/mt-models";
 
 type Result = {
   translations: Partial<Record<Lang, string>>;
@@ -76,7 +76,6 @@ export default function SentencePanel({ source, sentence }: { source: Lang; sent
       {targets.map((target) => {
         const meta = LANG_META[target];
         const text = state.status === "done" ? state.translations[target] : undefined;
-        const fromDictionary = state.status === "done" && state.fromDictionary.includes(target);
 
         return (
           <div key={target} className="flex items-start gap-4 p-4">
@@ -89,19 +88,9 @@ export default function SentencePanel({ source, sentence }: { source: Lang; sent
 
             <div className="min-w-0 flex-1">
               {text ? (
-                <div className="flex flex-col gap-1">
-                  <p lang={meta.bcp47} className="text-lg text-neutral-900 dark:text-neutral-100">
-                    {text}
-                  </p>
-                  {fromDictionary
-                    ? null
-                    : isPivoted(source, target) && (
-                        <p className="text-xs text-neutral-400">
-                          via English — no direct {LANG_META[source].label} → {meta.label} model
-                          exists
-                        </p>
-                      )}
-                </div>
+                <p lang={meta.bcp47} className="text-lg text-neutral-900 dark:text-neutral-100">
+                  {text}
+                </p>
               ) : (
                 <div className="text-sm text-neutral-500">Translating…</div>
               )}

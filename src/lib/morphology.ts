@@ -14,9 +14,9 @@
  */
 
 import type { Gender, Glosses, Pos } from "./analysis.ts";
-import type { DictStore } from "./dictStore.ts";
-import type { Features } from "./dictFormat.ts";
-import { CLITIC, CONTRACTIONS, SEPARABLE_PARTICLES } from "./germanTables.ts";
+import type { DictStore } from "./dict-store.ts";
+import type { Features } from "./dict-format.ts";
+import { CLITIC, CONTRACTIONS, SEPARABLE_PARTICLES } from "./german-tables.ts";
 
 /** A dictionary entry reached from a surface form, with how we got there. */
 export type Candidate = {

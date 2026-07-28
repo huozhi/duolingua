@@ -8,7 +8,7 @@
  */
 
 import { CASE_ABBREV, LANG_META, TARGETS, type Target } from "../src/lib/analysis.ts";
-import type { Features } from "../src/lib/dictFormat.ts";
+import type { Features } from "../src/lib/dict-format.ts";
 import { resolve, type Candidate } from "../src/lib/morphology.ts";
 import { dictManifest, dictStore } from "../src/server/dict.ts";
 

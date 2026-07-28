@@ -19,7 +19,7 @@ import {
   shardOf,
   type FormAnalysis,
   type WordEntry,
-} from "./dictFormat.ts";
+} from "./dict-format.ts";
 
 /** Returns the raw gzipped bytes of a shard, or null if it does not exist. */
 export type ShardLoader = (name: string) => Promise<Uint8Array | null>;
@@ -140,4 +140,3 @@ async function gunzip(bytes: Uint8Array): Promise<string> {
   const stream = new Blob([bytes as BlobPart]).stream().pipeThrough(new DecompressionStream("gzip"));
   return new Response(stream).text();
 }
-

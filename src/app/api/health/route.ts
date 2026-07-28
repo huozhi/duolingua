@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ALL_MODELS } from "@/lib/mtModels";
+import { ALL_MODELS } from "@/lib/mt-models";
 import { dictManifest } from "@/server/dict";
 import { residentModels } from "@/server/mt";
 

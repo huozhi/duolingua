@@ -13,23 +13,11 @@ import {
   type Word,
 } from "@/lib/analysis";
 import { detectLanguage } from "@/lib/detect";
-import SentencePanel from "./SentencePanel";
-
-/** One per language, so the source selector has something to demonstrate. */
-const EXAMPLES: [Lang, string][] = [
-  ["de", "Der schnelle Hund springt über den faulen Zaun."],
-  ["de", "Ich stehe jeden Tag früh auf."],
-  ["en", "I have no idea what you are talking about."],
-  ["es", "A pesar del mal tiempo, los niños fueron a pasear."],
-  ["zh", "我不知道你在说什么"],
-];
+import SentencePanel from "./sentence-panel";
 
 const MAX_LENGTH = 600;
 
-/** What the user asked for: a language, or let the app work it out. */
 type SourceChoice = Lang | "auto";
-
-/** A submitted sentence, pinned with the source it was translated as. */
 type Submission = { sentence: string; source: Lang; run: number };
 
 export default function Translator() {
@@ -41,8 +29,6 @@ export default function Translator() {
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
 
-  // Detection runs here, in the browser, as you type: it is a few set lookups, so
-  // there is no reason to spend a round trip finding out what language this is.
   const detected = useMemo(() => detectLanguage(sentence), [sentence]);
   const source: Lang = choice === "auto" ? detected.lang : choice;
 
@@ -53,12 +39,12 @@ export default function Translator() {
     setError(null);
     setSelected(null);
     setAnalysis(null);
-    // The run counter makes an unchanged sentence re-translate: the panel is keyed
-    // on it, and a new key is what makes it fetch again.
-    setSubmission((previous) => ({ sentence: value, source: from, run: (previous?.run ?? 0) + 1 }));
+    setSubmission((previous) => ({
+      sentence: value,
+      source: from,
+      run: (previous?.run ?? 0) + 1,
+    }));
 
-    // The word-by-word layer is German-only, so there is nothing to fetch for the
-    // other languages — the sentence panel does its own work.
     if (from !== "de") return;
 
     setLoading(true);
@@ -86,60 +72,35 @@ export default function Translator() {
         }}
         className="flex flex-col gap-3"
       >
-        <textarea
-          value={sentence}
-          onChange={(e) => setSentence(e.target.value)}
-          onKeyDown={(e) => {
-            // Enter translates — again, even if nothing changed. Shift+Enter is
-            // still how you get a newline.
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              submit(sentence, source);
-            }
-          }}
-          placeholder="Paste a sentence in German, English, Spanish or Chinese…"
-          rows={3}
-          maxLength={MAX_LENGTH}
-          className="w-full resize-none rounded-xl border border-neutral-300 bg-white p-4 text-lg shadow-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900"
-        />
-
-        <SourcePicker choice={choice} detected={detected.lang} onChange={setChoice} />
-
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-stretch gap-2">
+          <textarea
+            value={sentence}
+            onChange={(e) => setSentence(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit(sentence, source);
+              }
+            }}
+            placeholder="Paste a sentence in German, English, Spanish or Chinese…"
+            maxLength={MAX_LENGTH}
+            className="h-24 min-w-0 flex-1 resize-none rounded-xl border border-neutral-300 bg-white p-4 text-lg shadow-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900"
+          />
           <button
             type="submit"
             disabled={loading || !sentence.trim()}
-            className="rounded-lg bg-neutral-900 px-5 py-2.5 font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="h-24 w-28 shrink-0 rounded-xl bg-neutral-900 px-4 font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
           >
             {loading ? "Übersetze…" : "Translate"}
           </button>
-          <span className="text-sm text-neutral-500">
-            Press Enter to translate · Shift + Enter for a new line
-          </span>
         </div>
-      </form>
 
-      {!submission && (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-neutral-500">Try an example:</p>
-          <div className="flex flex-col gap-2">
-            {EXAMPLES.map(([lang, example]) => (
-              <button
-                key={example}
-                onClick={() => {
-                  setSentence(example);
-                  setChoice("auto");
-                  submit(example, lang);
-                }}
-                className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-neutral-700 transition hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
-              >
-                <span className="w-8 shrink-0 text-xs uppercase text-neutral-400">{lang}</span>
-                <span>{example}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        <SourcePicker choice={choice} detected={detected.lang} onChange={setChoice} />
+
+        <span className="text-sm text-neutral-500">
+          Press Enter to translate · Shift + Enter for a new line
+        </span>
+      </form>
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
@@ -149,8 +110,6 @@ export default function Translator() {
 
       {submission && (
         <div className="flex flex-col gap-5">
-          {/* Keyed by the run counter as well as the sentence, so re-submitting the
-              same sentence translates it again instead of showing a stale answer. */}
           <SentencePanel
             key={`${submission.run}:${submission.source}:${submission.sentence}`}
             source={submission.source}
@@ -201,7 +160,6 @@ export default function Translator() {
   );
 }
 
-/** The word-by-word breakdown, analysed by the server against the dictionary. */
 async function analyzeSentence(sentence: string): Promise<Analysis> {
   const response = await fetch("/api/analyze", {
     method: "POST",
@@ -213,13 +171,6 @@ async function analyzeSentence(sentence: string): Promise<Analysis> {
   return data as Analysis;
 }
 
-/**
- * The source language, detected but overridable.
- *
- * Detection is reliable on sentences and not on bare words — `no` is Spanish and
- * English both — so the guess is always visible and always correctable rather than
- * silently deciding which way to translate.
- */
 function SourcePicker({
   choice,
   detected,
@@ -236,7 +187,8 @@ function SourcePicker({
       <span className="mr-1 text-xs text-neutral-500">From</span>
       {options.map((option) => {
         const isActive = choice === option;
-        const label = option === "auto" ? `Auto (${LANG_META[detected].native})` : LANG_META[option].native;
+        const label =
+          option === "auto" ? `Auto (${LANG_META[detected].native})` : LANG_META[option].native;
         return (
           <button
             key={option}
@@ -263,7 +215,6 @@ function WordCard({ word }: { word: Word }) {
     ["Part of speech", meta.label],
     ["Lemma", word.lemma === word.text ? null : word.lemma],
     ["Gender", word.gender],
-    // Syncretic case is shown as such — "acc/dat" rather than a coin flip.
     ["Case", word.cases.length ? word.cases.map((c) => CASE_ABBREV[c]).join("/") : null],
     ["Number", word.number],
     ["Person", word.person],
@@ -276,7 +227,9 @@ function WordCard({ word }: { word: Word }) {
     <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mb-3 flex items-baseline gap-3">
         <span className="text-2xl font-semibold">{word.text}</span>
-        <span className={`rounded-md border px-2 py-0.5 text-xs ${meta.className}`}>{meta.label}</span>
+        <span className={`rounded-md border px-2 py-0.5 text-xs ${meta.className}`}>
+          {meta.label}
+        </span>
       </div>
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm">
@@ -286,7 +239,9 @@ function WordCard({ word }: { word: Word }) {
           return (
             <div key={target} className="contents">
               <dt className="text-neutral-500">{LANG_META[target].label}</dt>
-              <dd className="text-neutral-900 dark:text-neutral-100">{formatGlosses(glosses)}</dd>
+              <dd className="text-neutral-900 dark:text-neutral-100">
+                {formatGlosses(glosses)}
+              </dd>
             </div>
           );
         })}
@@ -322,7 +277,7 @@ function WordCard({ word }: { word: Word }) {
 }
 
 function Legend({ words }: { words: Word[] }) {
-  const used = Array.from(new Set(words.map((w) => w.pos)));
+  const used = Array.from(new Set(words.map((word) => word.pos)));
   return (
     <div className="flex flex-wrap gap-2 border-t border-neutral-200 pt-4 dark:border-neutral-800">
       {used.map((pos) => {
@@ -346,6 +301,6 @@ function formatGlosses(glosses: Gloss[]) {
 function abbrev(pos: string) {
   return pos
     .split("-")
-    .map((p) => p.slice(0, 3))
+    .map((part) => part.slice(0, 3))
     .join(".");
 }

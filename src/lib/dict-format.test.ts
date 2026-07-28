@@ -13,7 +13,7 @@ import {
   sanitize,
   shardOf,
   type Features,
-} from "./dictFormat.ts";
+} from "./dict-format.ts";
 import { emptyGlosses } from "./analysis.ts";
 
 test("word lines survive a round trip", () => {

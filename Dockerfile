@@ -1,4 +1,4 @@
-# Was das? — German translator, self-contained.
+# q4 — four-language translator, self-contained.
 #
 # The image ships both halves: the compiled dictionary (~10MB, committed to the
 # repo) and the three OPUS-MT models (~330MB, downloaded during the build). The

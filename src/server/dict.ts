@@ -9,7 +9,7 @@
 
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { createDictStore, type DictManifest, type DictStore } from "../lib/dictStore.ts";
+import { createDictStore, type DictManifest, type DictStore } from "../lib/dict-store.ts";
 
 /**
  * `process.cwd()` is the project root under `next dev`, `next start` and the

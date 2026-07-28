@@ -8,8 +8,8 @@
  */
 
 import type { Analysis } from "./analysis.ts";
-import type { DictStore } from "./dictStore.ts";
-import { SEPARABLE_PARTICLES } from "./germanTables.ts";
+import type { DictStore } from "./dict-store.ts";
+import { SEPARABLE_PARTICLES } from "./german-tables.ts";
 import { expandClitic, expandContraction, joinSeparableVerb, resolve } from "./morphology.ts";
 import { tag, type Slot } from "./tagger.ts";
 import { tokenize } from "./tokenize.ts";

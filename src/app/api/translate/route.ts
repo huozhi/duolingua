@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { LANGS, type Lang } from "@/lib/analysis";
 import { asLang, detectLanguage } from "@/lib/detect";
-import { isPivoted, targetsFor } from "@/lib/mtModels";
+import { isPivoted, targetsFor } from "@/lib/mt-models";
 import { translateAll } from "@/server/mt";
 
 /** Native ONNX Runtime is a Node addon, so this cannot run on the edge. */

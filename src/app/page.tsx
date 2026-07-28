@@ -1,26 +1,25 @@
 import Link from "next/link";
-import Translator from "./Translator";
+import Translator from "./translator";
 
 export default function Home() {
   return (
-    <div className="min-h-full bg-zinc-50 font-sans dark:bg-black">
-      <main className="mx-auto w-full max-w-3xl px-6 py-12 sm:py-20">
+    <div className="flex min-h-full flex-1 bg-zinc-50 font-sans dark:bg-black">
+      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 pb-10 pt-6 sm:pt-8">
         <header className="mb-8">
           <h1 className="text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
-            Was&nbsp;das?
+            q4
           </h1>
-          <p className="mt-2 text-lg text-neutral-600 dark:text-neutral-400">
-            Paste any German sentence and read it in English, Spanish and Chinese — word by
-            word, with grammar. Nothing to download and no third-party service.
-          </p>
         </header>
 
         <Translator />
 
-        <footer className="mt-16 border-t border-neutral-200 pt-6 text-xs text-neutral-500 dark:border-neutral-800">
+        <div className="min-h-16 flex-1" />
+
+        <footer className="border-t border-neutral-200 pt-6 text-xs text-neutral-500 dark:border-neutral-800">
           <p>
             Word data from Wiktionary and HanDeDict, CC BY-SA. Sentence translation by OPUS-MT,
-            running on your device.{" "}
+            running on your device. Language pairs without a direct model are translated via
+            English.{" "}
             <Link href="/licenses" className="underline hover:text-neutral-800 dark:hover:text-neutral-200">
               Sources and licenses
             </Link>

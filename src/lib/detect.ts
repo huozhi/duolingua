@@ -12,7 +12,7 @@
  */
 
 import { LANGS, type Lang } from "./analysis.ts";
-import { COORDINATING, DEFINITE_ARTICLE, PRONOUNS, SUBORDINATING } from "./germanTables.ts";
+import { COORDINATING, DEFINITE_ARTICLE, PRONOUNS, SUBORDINATING } from "./german-tables.ts";
 
 export type Detection = {
   lang: Lang;

@@ -18,7 +18,7 @@
 import { CASE_ABBREV, LANGS, LANG_META, TARGETS, type Lang, type Word } from "../src/lib/analysis.ts";
 import { asLang, detectLanguage } from "../src/lib/detect.ts";
 import { glossSentence } from "../src/lib/gloss.ts";
-import { isPivoted, targetsFor } from "../src/lib/mtModels.ts";
+import { isPivoted, targetsFor } from "../src/lib/mt-models.ts";
 import { dictStore } from "../src/server/dict.ts";
 import { translate } from "../src/server/mt.ts";
 

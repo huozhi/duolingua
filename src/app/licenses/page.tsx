@@ -3,7 +3,7 @@ import Link from "next/link";
 import manifest from "../../../data/dict/manifest.json";
 
 export const metadata: Metadata = {
-  title: "Sources and licenses — Was das?",
+  title: "Sources and licenses — q4",
   description: "Where the dictionary and the translation models come from, and under which licenses.",
 };
 

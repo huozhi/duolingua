@@ -19,6 +19,13 @@
 
 # production
 /build
+/dist-desktop/
+/.desktop-build/
+/native-shell/.zig-cache/
+/native-shell/zig-out/
+
+# package-manager archives (`pnpm pack`, `npm pack`)
+/*.tgz
 
 # raw dictionary sources — ~375MB of downloads, refetch with `pnpm dict:fetch`.
 # The built shards in data/dict/ ARE committed: they are what the app ships,

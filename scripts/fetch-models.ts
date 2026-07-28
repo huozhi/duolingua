@@ -9,7 +9,7 @@
  * first request of a session fast.
  */
 
-import { ALL_MODELS } from "../src/lib/mtModels.ts";
+import { ALL_MODELS } from "../src/lib/mt-models.ts";
 import { loadAllModels } from "../src/server/mt.ts";
 
 const cacheDir = process.env.MODEL_CACHE_DIR ?? ".cache";

@@ -1,4 +1,4 @@
-# Was das?
+# q4
 
 Paste a sentence in **German, English, Spanish or Chinese**; read it in the other three. German input
 also gets a word-by-word breakdown with part of speech, case, gender and tense.
@@ -85,17 +85,35 @@ pnpm test           # format round-trips, dictionary integrity, sentence fixture
 npx tsc --noEmit    # types; there is no linter in this project
 ```
 
+## Desktop app
+
+The desktop development app uses Vercel Labs' Native SDK and the system WebView
+(WKWebView on macOS), with no Electron or bundled Chromium. Native SDK manages
+the Next development server, opens the window and shuts the server down with it.
+
+```bash
+pnpm app             # native desktop window with Next.js hot reload
+pnpm native:check    # validate the Native SDK manifest
+pnpm native:build    # optimized native shell binary
+```
+
+The shell lives in `native-shell/`. Zig 0.16 is required (`brew install zig` on
+macOS). A distributable offline package must additionally bundle Node, the
+standalone Next server and the seven translation models because the translation
+backend uses Transformers.js and ONNX Runtime; Native SDK itself deliberately
+contains no JavaScript runtime.
+
 ## Deploying
 
 ```bash
-docker build -t was-das .
-docker run -p 3000:3000 was-das
+docker build -t q4 .
+docker run -p 3000:3000 q4
 ```
 
 The image bakes in both the dictionary and the models, so it runs with no outbound network:
 
 ```bash
-docker run --network none -p 3000:3000 was-das
+docker run --network none -p 3000:3000 q4
 ```
 
 Expect ~1.15GB on disk — the seven models are 780MB of it.
@@ -150,10 +168,10 @@ scripts/
   lookup.ts          word lookup CLI
   translate.ts       sentence translation CLI
 src/lib/             shared by browser, server and CLI
-  dictFormat.ts      the on-disk format, written by the build and read by everything
-  dictStore.ts       shard loading and parsing, with the loader injected
+  dict-format.ts     the on-disk format, written by the build and read by everything
+  dict-store.ts      shard loading and parsing, with the loader injected
   morphology.ts      surface form → lemma: form index, ending stripping, compounds
-  germanTables.ts    closed-class words, determiner paradigms, preposition cases
+  german-tables.ts   closed-class words, determiner paradigms, preposition cases
   tagger.ts          part of speech and grammatical features, by ordered rules
   gloss.ts           the pipeline: tokenize → resolve → merge multiword → tag
 src/server/

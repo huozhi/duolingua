@@ -1,5 +1,5 @@
 /**
- * Hand-written German closed-class data.
+ * Hand-written German closed-class data and grammar tables.
  *
  * Everything here could in principle be read out of the dictionary, but function
  * words are exactly where a dictionary is least useful: `der` has one Wiktionary

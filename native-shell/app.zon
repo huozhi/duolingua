@@ -1,0 +1,32 @@
+.{
+    .id = "app.q4.translator",
+    .name = "native-shell",
+    .display_name = "q4",
+    .version = "0.1.0",
+    .icons = .{ "assets/icon.png" },
+    .platforms = .{ "macos", "linux" },
+    .permissions = .{},
+    .capabilities = .{ "webview" },
+    .frontend = .{
+        .dist ="frontend/out",
+        .entry = "index.html",
+        .spa_fallback = true,
+        .dev = .{
+            .url ="http://127.0.0.1:3000/",
+            .command = .{ "pnpm", "--dir", "..", "exec", "next", "dev", "--hostname", "127.0.0.1" },
+            .ready_path = "/api/health",
+            .timeout_ms = 30000,
+        },
+    },
+    .security = .{
+        .navigation = .{
+            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:3000" },
+            .external_links = .{ .action = "deny" },
+        },
+    },
+    .web_engine = "system",
+    .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
+    .windows = .{
+        .{ .label = "main", .title = "q4", .width = 1040, .height = 680, .restore_state = false },
+    },
+}
