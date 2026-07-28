@@ -1,0 +1,188 @@
+name: Release desktop app
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NATIVE_SDK_PATH: ${{ github.workspace }}/node_modules/@native-sdk/cli
+
+jobs:
+  macos-dmg:
+    name: macOS DMG
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out q4
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Set up Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build native package
+        working-directory: native-shell
+        run: |
+          export PATH="$GITHUB_WORKSPACE/node_modules/.bin:$PATH"
+          zig build package -Dnative-sdk-path="$NATIVE_SDK_PATH" -Dpackage-target=macos
+
+      - name: Prepare app
+        id: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_path="$(find native-shell/zig-out/package -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$app_path"
+
+          mkdir -p release/dmg
+          cp -R "$app_path" release/dmg/q4.app
+          ln -s /Applications release/dmg/Applications
+
+          arch="$(uname -m)"
+          dmg="release/q4-${GITHUB_REF_NAME}-macos-${arch}.dmg"
+          echo "app=release/dmg/q4.app" >> "$GITHUB_OUTPUT"
+          echo "dmg=$dmg" >> "$GITHUB_OUTPUT"
+
+      - name: Check signing configuration
+        id: signing
+        shell: bash
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+        run: |
+          if [ -n "$MACOS_CERTIFICATE" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -n "$MACOS_CERTIFICATE" ] && [ -n "$APPLE_ID" ]; then
+            echo "notarize=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "notarize=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Import signing certificate
+        if: ${{ steps.signing.outputs.enabled == 'true' }}
+        shell: bash
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          certificate="$RUNNER_TEMP/developer-id.p12"
+          keychain="$RUNNER_TEMP/q4-signing.keychain-db"
+
+          printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$certificate"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$keychain"
+          security import "$certificate" \
+            -P "$MACOS_CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$keychain"
+          security list-keychains -d user -s "$keychain"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$keychain"
+
+      - name: Sign app with Developer ID
+        if: ${{ steps.signing.outputs.enabled == 'true' }}
+        env:
+          SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          test -n "$SIGNING_IDENTITY"
+          codesign \
+            --deep \
+            --force \
+            --options runtime \
+            --timestamp \
+            --sign "$SIGNING_IDENTITY" \
+            "${{ steps.app.outputs.app }}"
+          codesign --verify --deep --strict --verbose=2 "${{ steps.app.outputs.app }}"
+
+      - name: Ad-hoc sign app
+        if: ${{ steps.signing.outputs.enabled != 'true' }}
+        run: |
+          codesign --deep --force --sign - "${{ steps.app.outputs.app }}"
+          codesign --verify --deep --strict --verbose=2 "${{ steps.app.outputs.app }}"
+
+      - name: Create DMG
+        run: |
+          hdiutil create \
+            -volname "q4" \
+            -srcfolder release/dmg \
+            -ov \
+            -format UDZO \
+            "${{ steps.app.outputs.dmg }}"
+
+      - name: Notarize DMG
+        if: ${{ steps.signing.outputs.notarize == 'true' }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          xcrun notarytool submit "${{ steps.app.outputs.dmg }}" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          xcrun stapler staple "${{ steps.app.outputs.dmg }}"
+          xcrun stapler validate "${{ steps.app.outputs.dmg }}"
+
+      - name: Create checksum
+        shell: bash
+        run: |
+          cd release
+          shasum -a 256 "$(basename "${{ steps.app.outputs.dmg }}")" > SHA256SUMS.txt
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" \
+              "${{ steps.app.outputs.dmg }}" \
+              release/SHA256SUMS.txt \
+              --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "${{ steps.app.outputs.dmg }}" \
+              release/SHA256SUMS.txt \
+              --verify-tag \
+              --generate-notes \
+              --title "q4 $GITHUB_REF_NAME"
+          fi

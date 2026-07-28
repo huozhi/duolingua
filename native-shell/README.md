@@ -7,7 +7,7 @@ A minimal native-sdk desktop app with a web frontend.
 `zig build dev`, `zig build run`, and `zig build package` install frontend dependencies automatically. To install them explicitly, run:
 
 ```sh
-npm install --prefix frontend
+pnpm --dir frontend install
 ```
 
 The generated build defaults to this Native SDK framework path:

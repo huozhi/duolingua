@@ -23,6 +23,9 @@
 /.desktop-build/
 /native-shell/.zig-cache/
 /native-shell/zig-out/
+/native-shell/frontend/.next/
+/native-shell/frontend/node_modules/
+/native-shell/frontend/out/
 
 # package-manager archives (`pnpm pack`, `npm pack`)
 /*.tgz

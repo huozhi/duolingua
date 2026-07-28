@@ -9,10 +9,17 @@ data/raw
 node_modules
 .next
 out
+.desktop-build
+.pnpm-store
+dist-desktop
+native-shell
+*.tgz
+tsconfig.tsbuildinfo
 
 .git
 .gitignore
 Dockerfile
+Dockerfile.vercel
 .dockerignore
 README.md
 *.log

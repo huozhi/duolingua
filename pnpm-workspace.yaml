@@ -1,5 +1,6 @@
 packages:
   - .
+  - native-shell/frontend
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
