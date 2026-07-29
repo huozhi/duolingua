@@ -1,4 +1,4 @@
-# q4 technical details
+# q4 design
 
 Paste a sentence in **German, English, Spanish or Chinese**; read it in the other three. German input
 also gets a word-by-word breakdown with part of speech, case, gender and tense.
@@ -127,6 +127,10 @@ regular serverless Next.js bundle. The container listens on Vercel's `$PORT` and
 includes the dictionary, all seven translation models and native ONNX Runtime.
 No model download happens while serving a request.
 
+`vercel.json` explicitly defines one container service and routes every request
+to it, so Vercel cannot fall back to a model-less Next.js Function deployment.
+The Vercel project's Framework Preset must be set to **Services**.
+
 The image is about 1.15GB, so the deployment uses Vercel Large Functions on
 Fluid compute. New projects are enrolled automatically. For an older project,
 enable Large Functions when prompted or set `VERCEL_SUPPORT_LARGE_FUNCTIONS=1`
@@ -140,7 +144,7 @@ instance; Vercel Hobby is fixed at 2GB.
 ### Any Docker host
 
 ```bash
-docker build -t q4 .
+docker build -f Dockerfile.vercel -t q4 .
 docker run -p 3000:3000 q4
 ```
 

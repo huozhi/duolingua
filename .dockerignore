@@ -18,7 +18,6 @@ tsconfig.tsbuildinfo
 
 .git
 .gitignore
-Dockerfile
 Dockerfile.vercel
 .dockerignore
 README.md

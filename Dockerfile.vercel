@@ -22,6 +22,7 @@ FROM deps AS build
 WORKDIR /app
 
 COPY . .
+ENV VERCEL=""
 RUN pnpm build
 
 # ── models ────────────────────────────────────────────────────────────────────

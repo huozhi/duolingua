@@ -11,4 +11,4 @@ page and results—no text is sent to a third-party translation service.
 
 q4 is available as a web app and a lightweight native desktop app.
 
-[Development and deployment details](docs/technical-details.md)
+[Design and development details](docs/design.md)

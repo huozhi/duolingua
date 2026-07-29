@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /** Self-contained server output, which is what the Dockerfile copies. */
-  output: "standalone",
+  /**
+   * Self-hosted and container builds copy the standalone server. Vercel's
+   * framework builder performs its own output tracing and packaging; asking it
+   * to create a second standalone bundle can make its post-build collector look
+   * for `.next/next-server.js.nft.json` after that file has already moved.
+   */
+  output: process.env.VERCEL ? undefined : "standalone",
 
   /**
    * Translation runs on the server, and `onnxruntime-node` loads a native `.node`
