@@ -2,15 +2,11 @@
 
 import { useMemo, useState } from "react";
 import {
-  CASE_ABBREV,
   LANGS,
   LANG_META,
   POS_META,
-  TARGETS,
   type Analysis,
-  type Gloss,
   type Lang,
-  type Word,
 } from "@/lib/analysis";
 import { detectLanguage } from "@/lib/detect";
 import SentencePanel from "./sentence-panel";
@@ -27,7 +23,6 @@ export default function Translator() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<number | null>(null);
 
   const detected = useMemo(() => detectLanguage(sentence), [sentence]);
   const source: Lang = choice === "auto" ? detected.lang : choice;
@@ -37,7 +32,6 @@ export default function Translator() {
     if (!value || loading) return;
 
     setError(null);
-    setSelected(null);
     setAnalysis(null);
     setSubmission((previous) => ({
       sentence: value,
@@ -116,43 +110,21 @@ export default function Translator() {
             sentence={submission.sentence}
           />
 
-          {submission.source === "de" ? (
-            analysis && (
-              <>
-                <div className="flex flex-wrap gap-2 leading-loose">
-                  {analysis.words.map((word, i) => {
-                    const meta = POS_META[word.pos] ?? POS_META.other;
-                    const isActive = selected === i;
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => setSelected(isActive ? null : i)}
-                        className={`group relative rounded-md border px-2 py-1 text-lg transition ${meta.className} ${
-                          isActive ? "ring-2 ring-neutral-900 dark:ring-white" : ""
-                        }`}
-                        title={meta.label}
-                      >
-                        <span className="font-medium">{word.text}</span>
-                        <span className="ml-1 align-top text-[10px] uppercase tracking-wide opacity-70">
-                          {abbrev(word.pos)}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {selected !== null && analysis.words[selected] && (
-                  <WordCard word={analysis.words[selected]} />
-                )}
-
-                <Legend words={analysis.words} />
-              </>
-            )
-          ) : (
-            <p className="text-sm text-neutral-500">
-              The word-by-word breakdown — lemma, case, gender, tense, compound splitting — exists
-              for German only. Those rules and the dictionary behind them are German-specific.
-            </p>
+          {submission.source === "de" && analysis && (
+            <div className="flex flex-wrap gap-1.5">
+              {analysis.words.map((word, i) => {
+                const meta = POS_META[word.pos] ?? POS_META.other;
+                return (
+                  <span
+                    key={i}
+                    className={`rounded border px-1.5 py-0.5 text-sm ${meta.className}`}
+                    title={meta.label}
+                  >
+                    {word.text}
+                  </span>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
@@ -207,100 +179,4 @@ function SourcePicker({
       })}
     </div>
   );
-}
-
-function WordCard({ word }: { word: Word }) {
-  const meta = POS_META[word.pos] ?? POS_META.other;
-  const grammar: [string, string | null][] = [
-    ["Part of speech", meta.label],
-    ["Lemma", word.lemma === word.text ? null : word.lemma],
-    ["Gender", word.gender],
-    ["Case", word.cases.length ? word.cases.map((c) => CASE_ABBREV[c]).join("/") : null],
-    ["Number", word.number],
-    ["Person", word.person],
-    ["Tense", word.tense],
-    ["Parts", word.parts?.map((part) => part.text).join(" + ") ?? null],
-    ["Note", word.note],
-  ];
-
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="mb-3 flex items-baseline gap-3">
-        <span className="text-2xl font-semibold">{word.text}</span>
-        <span className={`rounded-md border px-2 py-0.5 text-xs ${meta.className}`}>
-          {meta.label}
-        </span>
-      </div>
-
-      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm">
-        {TARGETS.map((target) => {
-          const glosses = word.glosses[target];
-          if (!glosses.length) return null;
-          return (
-            <div key={target} className="contents">
-              <dt className="text-neutral-500">{LANG_META[target].label}</dt>
-              <dd className="text-neutral-900 dark:text-neutral-100">
-                {formatGlosses(glosses)}
-              </dd>
-            </div>
-          );
-        })}
-        {grammar
-          .filter(([, value]) => value)
-          .map(([label, value]) => (
-            <div key={label} className="contents">
-              <dt className="text-neutral-500">{label}</dt>
-              <dd className="text-neutral-900 dark:text-neutral-100">{value}</dd>
-            </div>
-          ))}
-      </dl>
-
-      {word.compound && (
-        <div className="mt-4 border-t border-neutral-200 pt-3 dark:border-neutral-800">
-          <p className="mb-1.5 text-xs text-neutral-500">
-            Compound — not in the dictionary, split into parts
-          </p>
-          <ul className="flex flex-col gap-1 text-sm">
-            {word.compound.map((part, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="font-medium">{part.lemma}</span>
-                <span className="text-neutral-500">
-                  {part.glosses.en.map((g) => g.text).slice(0, 2).join(", ") || "—"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Legend({ words }: { words: Word[] }) {
-  const used = Array.from(new Set(words.map((word) => word.pos)));
-  return (
-    <div className="flex flex-wrap gap-2 border-t border-neutral-200 pt-4 dark:border-neutral-800">
-      {used.map((pos) => {
-        const meta = POS_META[pos] ?? POS_META.other;
-        return (
-          <span key={pos} className={`rounded-md border px-2 py-0.5 text-xs ${meta.className}`}>
-            {meta.label}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
-
-function formatGlosses(glosses: Gloss[]) {
-  return glosses
-    .map((gloss) => (gloss.pinyin ? `${gloss.text} (${gloss.pinyin})` : gloss.text))
-    .join("; ");
-}
-
-function abbrev(pos: string) {
-  return pos
-    .split("-")
-    .map((part) => part.slice(0, 3))
-    .join(".");
 }
