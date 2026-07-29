@@ -93,15 +93,15 @@ the Next development server, opens the window and shuts the server down with it.
 
 ```bash
 pnpm app             # native desktop window with Next.js hot reload
+pnpm desktop:pack    # standalone macOS app in dist-desktop/q4.app
 pnpm native:check    # validate the Native SDK manifest
 pnpm native:build    # optimized native shell binary
 ```
 
 The shell lives in `native-shell/`. Zig 0.16 is required (`brew install zig` on
-macOS). A distributable offline package must additionally bundle Node, the
-standalone Next server and the seven translation models because the translation
-backend uses Transformers.js and ONNX Runtime; Native SDK itself deliberately
-contains no JavaScript runtime.
+macOS). `pnpm desktop:pack` bundles the native shell, the current Node runtime, the
+standalone Next server, dictionary and all seven translation models. The result
+runs offline and does not require Node or pnpm on the destination Mac.
 
 Pushing a version tag publishes a macOS DMG and SHA-256 checksum to GitHub
 Releases:

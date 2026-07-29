@@ -45,19 +45,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build native package
-        working-directory: native-shell
-        run: |
-          export PATH="$GITHUB_WORKSPACE/node_modules/.bin:$PATH"
-          zig build package -Dnative-sdk-path="$NATIVE_SDK_PATH" -Dpackage-target=macos
+      - name: Fetch translation models
+        run: pnpm models:fetch
+
+      - name: Build standalone desktop app
+        run: pnpm desktop:pack
 
       - name: Prepare app
         id: app
         shell: bash
         run: |
           set -euo pipefail
-          app_path="$(find native-shell/zig-out/package -maxdepth 1 -type d -name '*.app' -print -quit)"
-          test -n "$app_path"
+          app_path="dist-desktop/q4.app"
+          test -d "$app_path"
 
           mkdir -p release/dmg
           cp -R "$app_path" release/dmg/q4.app

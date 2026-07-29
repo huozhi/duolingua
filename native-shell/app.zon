@@ -20,7 +20,12 @@
     },
     .security = .{
         .navigation = .{
-            .allowed_origins = .{ "zero://app", "zero://inline", "http://127.0.0.1:3000" },
+            .allowed_origins = .{
+                "zero://app",
+                "zero://inline",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:3219",
+            },
             .external_links = .{ .action = "deny" },
         },
     },

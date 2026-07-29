@@ -25,7 +25,12 @@ const App = struct {
     }
 };
 
-const dev_origins = [_][]const u8{ "zero://app", "zero://inline", "http://127.0.0.1:3000" };
+const app_origins = [_][]const u8{
+    "zero://app",
+    "zero://inline",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3219",
+};
 
 pub fn main(init: std.process.Init) !void {
     var app = App{ .env_map = init.environ_map };
@@ -35,7 +40,7 @@ pub fn main(init: std.process.Init) !void {
         .bundle_id = "app.q4.translator",
         .icon_path = "assets/icon.png",
         .security = .{
-            .navigation = .{ .allowed_origins = &dev_origins },
+            .navigation = .{ .allowed_origins = &app_origins },
         },
     }, init);
 }

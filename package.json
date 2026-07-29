@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "app": "native dev native-shell -Dtrace=off",
+    "desktop:pack": "sh scripts/package-desktop.sh",
     "native:check": "native check native-shell",
     "native:build": "native build native-shell",
     "test": "node --test \"src/**/*.test.ts\"",
