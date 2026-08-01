@@ -159,8 +159,7 @@ function SourcePicker({
       <span className="mr-1 text-xs text-neutral-500">From</span>
       {options.map((option) => {
         const isActive = choice === option;
-        const label =
-          option === "auto" ? `Auto (${LANG_META[detected].native})` : LANG_META[option].native;
+        const label = option === "auto" ? "Auto" : LANG_META[option].native;
         return (
           <button
             key={option}
@@ -177,6 +176,11 @@ function SourcePicker({
           </button>
         );
       })}
+      {choice === "auto" && (
+        <span className="ml-1 text-xs text-neutral-500">
+          Detected: {LANG_META[detected].native}
+        </span>
+      )}
     </div>
   );
 }
