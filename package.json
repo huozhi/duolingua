@@ -11,6 +11,7 @@
     "desktop:pack": "sh scripts/package-desktop.sh",
     "native:check": "native check native-shell",
     "native:build": "native build native-shell",
+    "version:bump": "node scripts/bump-version.mjs",
     "test": "node --test \"src/**/*.test.ts\"",
     "dict:fetch": "node scripts/fetch-sources.ts",
     "dict:build": "node --max-old-space-size=8192 scripts/build-dict.ts",
