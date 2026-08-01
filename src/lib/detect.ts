@@ -46,7 +46,8 @@ const GERMAN = new Set<string>([
 const ENGLISH = new Set<string>([
   "the", "is", "and", "of", "to", "a", "an", "in", "that", "it", "for", "on", "with", "as", "was",
   "are", "this", "be", "have", "has", "not", "but", "they", "you", "at", "from", "or", "by", "will",
-  "can", "would", "there", "their", "what", "about", "which", "when", "all", "my", "your", "do",
+  "can", "would", "there", "their", "what", "about", "which", "when", "all", "any", "my", "your", "do",
+  "language",
   // Words people type on their own, which is otherwise the blind spot.
   "yes", "no", "hello", "hi", "thanks", "please", "sorry", "good", "morning", "afternoon", "goodbye",
 ]);

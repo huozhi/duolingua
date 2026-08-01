@@ -59,6 +59,12 @@ test("the words people type on their own are recognised", () => {
   }
 });
 
+test("detects a short English phrase without relying on the German fallback", () => {
+  const detection = detectLanguage("any language");
+  assert.equal(detection.lang, "en");
+  assert.ok(detection.confidence > 0);
+});
+
 test("a word belonging to two languages keeps its guess but claims no confidence", () => {
   // `no` is Spanish and English both, and nothing can resolve that. What matters
   // is that it does not claim certainty a user would have to fight.
