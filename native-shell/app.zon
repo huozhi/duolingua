@@ -1,7 +1,7 @@
 .{
     .id = "app.duolingua.translator",
     .name = "native-shell",
-    .display_name = "duolingua",
+    .display_name = "Duolingua",
     .version = "0.1.0",
     .icons = .{ "assets/icon.png" },
     .platforms = .{ "macos", "linux" },
@@ -32,6 +32,6 @@
     .web_engine = "system",
     .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
     .windows = .{
-        .{ .label = "main", .title = "duolingua", .width = 1040, .height = 680, .restore_state = false },
+        .{ .label = "main", .title = "Duolingua", .width = 1040, .height = 680, .restore_state = false },
     },
 }

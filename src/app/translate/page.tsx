@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Translator from "../translator";
 
 export const metadata: Metadata = {
-  title: "Translator — duolingua",
+  title: "Duolingua",
 };
 
 export default function TranslatePage() {
@@ -13,12 +13,6 @@ export default function TranslatePage() {
   return (
     <div className="flex min-h-full flex-1 bg-zinc-50 font-sans dark:bg-black">
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 pb-10 pt-6 sm:pt-8">
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
-            duolingua
-          </h1>
-        </header>
-
         <Translator />
 
         <div className="min-h-16 flex-1" />
