@@ -21,7 +21,7 @@ test -d .cache || {
 rm -rf "$project_dir/.next" "$package_dir"
 
 pnpm build
-"$native_cli" build "$native_dir"
+"$native_cli" build "$native_dir" --yes
 
 (
   cd "$native_dir"
