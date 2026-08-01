@@ -9,5 +9,5 @@ case, gender and tense.
 Translation stays private on your Mac, so your text is not sent to a third-party
 translation service.
 
-[Download duolingua for macOS](https://github.com/huozhi/duolingua/releases/latest). Available for
-Apple Silicon and Intel Macs.
+[Download duolingua for macOS](https://github.com/huozhi/duolingua/releases/latest). Requires a Mac
+with Apple silicon.

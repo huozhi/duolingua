@@ -160,6 +160,7 @@ async function translateSentence(source: Lang, target: Lang, sentence: string): 
       sourceSentences: 1,
       collapseSentences: target === "zh",
       sourceWords: sentence.split(/\s+/).filter(Boolean).length,
+      sourceText: current,
     });
   }
 

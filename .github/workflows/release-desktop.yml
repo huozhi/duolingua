@@ -34,13 +34,6 @@ jobs:
           - runner: macos-15
             arch: arm64
             uname-arch: arm64
-            zig-arch: aarch64
-            zig-sha256: b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489
-          - runner: macos-15-intel
-            arch: x64
-            uname-arch: x86_64
-            zig-arch: x86_64
-            zig-sha256: 0387557ed1877bc6a2e1802c8391953baddba76081876301c522f52977b52ba7
 
     steps:
       - name: Check out release tag
@@ -84,24 +77,6 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-
-      - name: Set up Zig
-        shell: bash
-        env:
-          ZIG_ARCH: ${{ matrix.zig-arch }}
-          ZIG_SHA256: ${{ matrix.zig-sha256 }}
-        run: |
-          set -euo pipefail
-
-          zig_directory="$RUNNER_TEMP/zig-${ZIG_ARCH}-macos-0.16.0"
-          zig_archive="$RUNNER_TEMP/zig-${ZIG_ARCH}-macos-0.16.0.tar.xz"
-          curl --fail --location --retry 3 \
-            --output "$zig_archive" \
-            "https://ziglang.org/download/0.16.0/zig-${ZIG_ARCH}-macos-0.16.0.tar.xz"
-          printf '%s  %s\n' "$ZIG_SHA256" "$zig_archive" | shasum -a 256 --check -
-          tar -xf "$zig_archive" -C "$RUNNER_TEMP"
-          echo "$zig_directory" >> "$GITHUB_PATH"
-          "$zig_directory/zig" version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

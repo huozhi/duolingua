@@ -88,7 +88,10 @@ export default function SentencePanel({ source, sentence }: { source: Lang; sent
 
             <div className="min-w-0 flex-1">
               {text ? (
-                <p lang={meta.bcp47} className="text-lg text-neutral-900 dark:text-neutral-100">
+                <p
+                  lang={meta.bcp47}
+                  className="break-words select-text text-lg text-neutral-900 dark:text-neutral-100"
+                >
                   {text}
                 </p>
               ) : (

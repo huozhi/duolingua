@@ -165,7 +165,13 @@ export function collapseRepetition(
     sourceSentences,
     collapseSentences,
     sourceWords = Infinity,
-  }: { sourceSentences: number; collapseSentences: boolean; sourceWords?: number },
+    sourceText = "",
+  }: {
+    sourceSentences: number;
+    collapseSentences: boolean;
+    sourceWords?: number;
+    sourceText?: string;
+  },
 ): string {
   const sentences = intoSentences(text);
 
@@ -193,6 +199,25 @@ export function collapseRepetition(
   // the guard is the length of the source instead.
   if (collapseSentences && sourceWords <= SHORT_SOURCE_WORDS) {
     result = result.split(CLAUSE_SPLIT)[0];
+  }
+
+  // Unknown Latin tokens can make the English → Chinese model emit a character
+  // followed by the input over and over with no separator: `bibi` became
+  // `二bibibibibibi…`. With no word boundary, the clause rules above cannot see
+  // the loop. If the complete source text appears at least three times, the model
+  // has not translated it; preserving the source is more honest than displaying
+  // fabricated repetition.
+  const echo = sourceText.trim();
+  if (collapseSentences && echo.length >= 2) {
+    const haystack = result.toLocaleLowerCase();
+    const needle = echo.toLocaleLowerCase();
+    let count = 0;
+    let offset = 0;
+    while ((offset = haystack.indexOf(needle, offset)) !== -1 && count < 3) {
+      count += 1;
+      offset += needle.length;
+    }
+    if (count >= 3) return echo;
   }
 
   return result.trim();

@@ -4,7 +4,7 @@ set -eu
 
 project_dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 native_dir="$project_dir/native-shell"
-native_sdk_dir="$project_dir/node_modules/@native-sdk/cli"
+native_cli="$project_dir/node_modules/.bin/native"
 package_dir="$native_dir/zig-out/package"
 output_dir="$project_dir/dist-desktop"
 output_app="$output_dir/duolingua.app"
@@ -16,17 +16,26 @@ test -d .cache || {
   exit 1
 }
 
+# Generated output can retain traced packages from an older dependency graph.
+# Start clean so the app contains only files required by this build.
+rm -rf "$project_dir/.next" "$package_dir"
+
 pnpm build
+"$native_cli" build "$native_dir"
 
 (
   cd "$native_dir"
-  PATH="$project_dir/node_modules/.bin:$PATH" zig build package \
-    -Dnative-sdk-path="$native_sdk_dir" \
-    -Dpackage-target=macos
+  "$native_cli" package \
+    --target macos \
+    --output "$package_dir/duolingua.app" \
+    --binary zig-out/bin/native-shell \
+    --assets assets \
+    --web-layer include \
+    --signing none
 )
 
-source_app="$(find "$package_dir" -maxdepth 1 -type d -name '*.app' -print -quit)"
-test -n "$source_app"
+source_app="$package_dir/duolingua.app"
+test -d "$source_app"
 
 rm -rf "$output_app"
 mkdir -p "$output_dir"
@@ -37,8 +46,16 @@ resources_dir="$contents_dir/Resources"
 server_dir="$resources_dir/server"
 
 mv "$contents_dir/MacOS/native-shell" "$contents_dir/MacOS/duolingua-native"
-xcrun clang -Os "$native_dir/launcher/desktop-launcher.c" \
-  -o "$contents_dir/MacOS/duolingua"
+if [ -x /Library/Developer/CommandLineTools/usr/bin/clang ] && \
+  [ -d /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk ]; then
+  /Library/Developer/CommandLineTools/usr/bin/clang \
+    -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
+    -Os "$native_dir/launcher/desktop-launcher.c" \
+    -o "$contents_dir/MacOS/duolingua"
+else
+  clang -Os "$native_dir/launcher/desktop-launcher.c" \
+    -o "$contents_dir/MacOS/duolingua"
+fi
 plutil -replace CFBundleExecutable -string duolingua "$contents_dir/Info.plist"
 
 mkdir -p "$server_dir/.next" "$resources_dir/runtime" "$resources_dir/launcher"

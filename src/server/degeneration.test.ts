@@ -94,6 +94,13 @@ test("two Chinese phrasings separated by a space keep only the first", () => {
   assert.equal(collapseRepetition("你好 " + "你好 ".repeat(50), zh), "你好");
 });
 
+test("a source token repeated without separators is preserved once", () => {
+  assert.equal(
+    collapseRepetition("二" + "bibi".repeat(40), { ...zh, sourceWords: 1, sourceText: "bibi" }),
+    "bibi",
+  );
+});
+
 test("Chinese containing Latin or digits keeps its spaces", () => {
   assert.equal(collapseRepetition("iPhone 15 很好", zh), "iPhone 15 很好");
   assert.equal(collapseRepetition("他在 2024 年去了北京", zh), "他在 2024 年去了北京");

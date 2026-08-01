@@ -14,7 +14,7 @@
     />
   </defs>
 
-  <g transform="translate(0 24)">
+  <g transform="translate(78 100) scale(0.92)">
     <use
       href="#bubble"
       transform="translate(-104 -104)"

@@ -25,8 +25,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     // Only this build's platform and architecture: the package ships binaries for
     // five of them, and shipping the other four would add ~110MB to the image.
+    // The package override pins 1.23.2 for Intel compatibility; naming that exact
+    // version also avoids tracing Transformers' unused 1.24.3 declaration.
     "/api/translate": [
-      `./node_modules/.pnpm/onnxruntime-node@*/node_modules/onnxruntime-node/bin/napi-v6/${process.platform}/${process.arch}/**`,
+      `./node_modules/.pnpm/onnxruntime-node@1.23.2/node_modules/onnxruntime-node/bin/napi-v6/${process.platform}/${process.arch}/**`,
     ],
   },
 };

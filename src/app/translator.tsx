@@ -1,13 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  LANGS,
-  LANG_META,
-  POS_META,
-  type Analysis,
-  type Lang,
-} from "@/lib/analysis";
+import { LANGS, LANG_META, type Lang } from "@/lib/analysis";
 import { detectLanguage } from "@/lib/detect";
 import SentencePanel from "./sentence-panel";
 
@@ -20,41 +14,19 @@ export default function Translator() {
   const [sentence, setSentence] = useState("");
   const [choice, setChoice] = useState<SourceChoice>("auto");
   const [submission, setSubmission] = useState<Submission | null>(null);
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const detected = useMemo(() => detectLanguage(sentence), [sentence]);
   const source: Lang = choice === "auto" ? detected.lang : choice;
 
-  async function submit(text: string, from: Lang) {
+  function submit(text: string, from: Lang) {
     const value = text.trim();
-    if (!value || loading) return;
+    if (!value) return;
 
-    setError(null);
-    setAnalysis(null);
     setSubmission((previous) => ({
       sentence: value,
       source: from,
       run: (previous?.run ?? 0) + 1,
     }));
-
-    if (from !== "de") return;
-
-    setLoading(true);
-    try {
-      setAnalysis(await analyzeSentence(value));
-    } catch (e) {
-      setError(
-        e instanceof TypeError
-          ? "Could not reach the server."
-          : e instanceof Error
-            ? e.message
-            : "Something went wrong.",
-      );
-    } finally {
-      setLoading(false);
-    }
   }
 
   return (
@@ -78,14 +50,14 @@ export default function Translator() {
             }}
             placeholder="Deutsch · English · Español · 中文"
             maxLength={MAX_LENGTH}
-            className="h-24 min-w-0 flex-1 resize-none rounded-xl border border-neutral-300 bg-white p-4 text-lg shadow-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900"
+            className="h-24 min-w-0 flex-1 resize-none select-text rounded-xl border border-neutral-300 bg-white p-4 text-lg shadow-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900"
           />
           <button
             type="submit"
-            disabled={loading || !sentence.trim()}
+            disabled={!sentence.trim()}
             className="h-24 w-28 shrink-0 rounded-xl bg-neutral-900 px-4 font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
           >
-            {loading ? "Übersetze…" : "Translate"}
+            Translate
           </button>
         </div>
 
@@ -96,51 +68,15 @@ export default function Translator() {
         </span>
       </form>
 
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </div>
-      )}
-
       {submission && (
-        <div className="flex flex-col gap-5">
-          <SentencePanel
-            key={`${submission.run}:${submission.source}:${submission.sentence}`}
-            source={submission.source}
-            sentence={submission.sentence}
-          />
-
-          {submission.source === "de" && analysis && (
-            <div className="flex flex-wrap gap-1.5">
-              {analysis.words.map((word, i) => {
-                const meta = POS_META[word.pos] ?? POS_META.other;
-                return (
-                  <span
-                    key={i}
-                    className={`rounded border px-1.5 py-0.5 text-sm ${meta.className}`}
-                    title={meta.label}
-                  >
-                    {word.text}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <SentencePanel
+          key={`${submission.run}:${submission.source}:${submission.sentence}`}
+          source={submission.source}
+          sentence={submission.sentence}
+        />
       )}
     </div>
   );
-}
-
-async function analyzeSentence(sentence: string): Promise<Analysis> {
-  const response = await fetch("/api/analyze", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sentence, source: "de" }),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data?.error ?? "Analysis failed.");
-  return data as Analysis;
 }
 
 function SourcePicker({
