@@ -36,14 +36,14 @@ export default function Home() {
               </a>
               <a
                 href={REPOSITORY_URL}
-                className="rounded-xl border border-neutral-300 px-5 py-3 font-medium text-neutral-700 transition hover:border-neutral-500 hover:text-neutral-950 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-500 dark:hover:text-white"
+                className="rounded-xl bg-neutral-200/70 px-5 py-3 font-medium text-neutral-700 transition hover:bg-neutral-200 hover:text-neutral-950 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white"
               >
                 View on GitHub
               </a>
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-sm rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-xl shadow-neutral-900/5 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-black/30">
+          <div className="mx-auto w-full max-w-sm p-6">
             <Image
               src="/icon.svg"
               alt="duolingua app icon"
@@ -62,7 +62,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="flex flex-wrap justify-between gap-3 border-t border-neutral-200 pt-6 text-sm text-neutral-500 dark:border-neutral-800">
+        <footer className="flex flex-wrap justify-between gap-3 pt-6 text-sm text-neutral-500">
           <span>Open source and built to run locally.</span>
           <a href={RELEASES_URL} className="underline hover:text-neutral-900 dark:hover:text-white">
             All releases
