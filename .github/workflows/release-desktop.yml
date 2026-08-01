@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Check out q4
+      - name: Check out duolingua
         uses: actions/checkout@v4
 
       - name: Set up pnpm
@@ -56,16 +56,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          app_path="dist-desktop/q4.app"
+          app_path="dist-desktop/duolingua.app"
           test -d "$app_path"
 
           mkdir -p release/dmg
-          cp -R "$app_path" release/dmg/q4.app
+          cp -R "$app_path" release/dmg/duolingua.app
           ln -s /Applications release/dmg/Applications
 
           arch="$(uname -m)"
-          dmg="release/q4-${GITHUB_REF_NAME}-macos-${arch}.dmg"
-          echo "app=release/dmg/q4.app" >> "$GITHUB_OUTPUT"
+          dmg="release/duolingua-${GITHUB_REF_NAME}-macos-${arch}.dmg"
+          echo "app=release/dmg/duolingua.app" >> "$GITHUB_OUTPUT"
           echo "dmg=$dmg" >> "$GITHUB_OUTPUT"
 
       - name: Check signing configuration
@@ -97,7 +97,7 @@ jobs:
         run: |
           set -euo pipefail
           certificate="$RUNNER_TEMP/developer-id.p12"
-          keychain="$RUNNER_TEMP/q4-signing.keychain-db"
+          keychain="$RUNNER_TEMP/duolingua-signing.keychain-db"
 
           printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$certificate"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain"
@@ -141,7 +141,7 @@ jobs:
       - name: Create DMG
         run: |
           hdiutil create \
-            -volname "q4" \
+            -volname "duolingua" \
             -srcfolder release/dmg \
             -ov \
             -format UDZO \
@@ -184,5 +184,5 @@ jobs:
               release/SHA256SUMS.txt \
               --verify-tag \
               --generate-notes \
-              --title "q4 $GITHUB_REF_NAME"
+              --title "duolingua $GITHUB_REF_NAME"
           fi

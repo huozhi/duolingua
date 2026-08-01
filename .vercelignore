@@ -1,5 +1,5 @@
-# Raw dictionary sources and the local model cache are recreated or copied by
-# Dockerfile.vercel. Uploading them can exceed Vercel's source size limit.
+# Raw dictionary sources and the local model cache belong to the offline desktop
+# app, not the public intro site. Uploading them would exceed Vercel's source limit.
 data/raw
 .cache
 

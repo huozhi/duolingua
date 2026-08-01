@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
+  <title id="title">duolingua</title>
+  <desc id="description">Four colorful speech bubbles surrounding the duolingua wordmark.</desc>
+  <defs>
+    <radialGradient id="background" cx="50%" cy="42%" r="72%">
+      <stop offset="0" stop-color="#fffdf8" />
+      <stop offset="1" stop-color="#eee7dc" />
+    </radialGradient>
+    <linearGradient id="charcoal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#4b5664" />
+      <stop offset="1" stop-color="#202832" />
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#4196ff" />
+      <stop offset="1" stop-color="#0864df" />
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ff8165" />
+      <stop offset="1" stop-color="#f0442a" />
+    </linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#43d3ba" />
+      <stop offset="1" stop-color="#159f87" />
+    </linearGradient>
+    <linearGradient id="medallion" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#fffdf8" />
+      <stop offset="1" stop-color="#eee6d8" />
+    </linearGradient>
+    <filter id="bubble-shadow" x="-20%" y="-20%" width="150%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#332a20" flood-opacity="0.28" />
+    </filter>
+    <filter id="medallion-shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#332a20" flood-opacity="0.32" />
+    </filter>
+    <filter id="text-shadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#14191f" flood-opacity="0.35" />
+    </filter>
+    <path id="bubble" d="M270 72C151 72 72 153 72 270c0 106 70 176 176 190l159 79-46-118c70-38 107-89 107-151C468 153 389 72 270 72Z" />
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#background)" />
+
+  <g filter="url(#bubble-shadow)" stroke-width="5">
+    <use href="#bubble" fill="url(#charcoal)" stroke="#202833" />
+    <use href="#bubble" transform="rotate(90 512 512)" fill="url(#blue)" stroke="#0759c6" />
+    <use href="#bubble" transform="rotate(270 512 512)" fill="url(#coral)" stroke="#d83d27" />
+    <use href="#bubble" transform="rotate(180 512 512)" fill="url(#mint)" stroke="#118b77" />
+  </g>
+
+  <g filter="url(#medallion-shadow)">
+    <circle cx="512" cy="512" r="220" fill="#ded3c2" stroke="#c8baa4" stroke-width="5" />
+    <circle cx="512" cy="500" r="205" fill="url(#medallion)" stroke="#fffdf8" stroke-width="8" />
+    <circle cx="512" cy="500" r="183" fill="none" stroke="#d8cdbd" stroke-width="4" />
+  </g>
+
+  <text
+    x="512"
+    y="558"
+    fill="#29323c"
+    filter="url(#text-shadow)"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="166"
+    font-weight="700"
+    letter-spacing="-10"
+    text-anchor="middle"
+  >duo</text>
+</svg>

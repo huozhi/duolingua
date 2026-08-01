@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /**
-   * Self-hosted and container builds copy the standalone server. Vercel's
+   * Self-hosted and desktop builds copy the standalone server. Vercel's
    * framework builder performs its own output tracing and packaging; asking it
    * to create a second standalone bundle can make its post-build collector look
    * for `.next/next-server.js.nft.json` after that file has already moved.

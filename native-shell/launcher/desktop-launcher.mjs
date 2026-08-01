@@ -8,7 +8,7 @@ const resourcesDir = resolve(launcherDir, "..");
 const contentsDir = resolve(resourcesDir, "..");
 const serverDir = join(resourcesDir, "server");
 const nodePath = join(resourcesDir, "runtime", "node");
-const nativePath = join(contentsDir, "MacOS", "q4-native");
+const nativePath = join(contentsDir, "MacOS", "duolingua-native");
 const port = 3219;
 const frontendUrl = `http://127.0.0.1:${port}`;
 
@@ -36,12 +36,12 @@ async function healthIsReady() {
 async function waitForServer() {
   for (let attempt = 0; attempt < 120; attempt += 1) {
     if (server.exitCode !== null) {
-      throw new Error(`The q4 server exited with code ${server.exitCode}.`);
+      throw new Error(`The duolingua server exited with code ${server.exitCode}.`);
     }
     if (await healthIsReady()) return;
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
   }
-  throw new Error("The q4 server did not become ready.");
+  throw new Error("The duolingua server did not become ready.");
 }
 
 async function showError(error) {
@@ -49,7 +49,7 @@ async function showError(error) {
   const escaped = message.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
   const alert = spawn("/usr/bin/osascript", [
     "-e",
-    `display alert "q4 could not start" message "${escaped}"`,
+    `display alert "duolingua could not start" message "${escaped}"`,
   ]);
   await new Promise((resolveAlert) => alert.once("exit", resolveAlert));
 }
@@ -93,7 +93,7 @@ try {
   native = spawn(nativePath, process.argv.slice(2), {
     env: {
       ...process.env,
-      NATIVE_SDK_FRONTEND_URL: `${frontendUrl}/`,
+      NATIVE_SDK_FRONTEND_URL: `${frontendUrl}/translate`,
     },
     stdio: "ignore",
   });

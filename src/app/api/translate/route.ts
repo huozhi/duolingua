@@ -29,6 +29,8 @@ function parseTargets(value: unknown, source: Lang): Lang[] | null {
 }
 
 export async function POST(request: Request) {
+  if (process.env.VERCEL) return new NextResponse(null, { status: 404 });
+
   let body: unknown;
   try {
     body = await request.json();

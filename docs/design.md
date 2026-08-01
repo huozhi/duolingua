@@ -1,4 +1,4 @@
-# q4 design
+# duolingua design
 
 Paste a sentence in **German, English, Spanish or Chinese**; read it in the other three. German input
 also gets a word-by-word breakdown with part of speech, case, gender and tense.
@@ -93,7 +93,7 @@ the Next development server, opens the window and shuts the server down with it.
 
 ```bash
 pnpm app             # native desktop window with Next.js hot reload
-pnpm desktop:pack    # standalone macOS app in dist-desktop/q4.app
+pnpm desktop:pack    # standalone macOS app in dist-desktop/duolingua.app
 pnpm native:check    # validate the Native SDK manifest
 pnpm native:build    # optimized native shell binary
 ```
@@ -117,77 +117,14 @@ The release workflow supports Apple notarization when
 configured as repository secrets. Without them it publishes an ad-hoc-signed
 DMG.
 
-## Deploying
+## Website
 
-### Vercel
+The public `/` route is a lightweight introduction with links to the latest macOS installer and the
+source repository. Translation is deliberately not offered on the hosted site: on Vercel,
+`/translate` returns a 404 and no translation models are deployed.
 
-The repository includes `Dockerfile.vercel`, so importing it into Vercel or
-running `vercel deploy` builds and deploys the complete container instead of a
-regular serverless Next.js bundle. The container listens on Vercel's `$PORT` and
-includes the dictionary, all seven translation models and native ONNX Runtime.
-No model download happens while serving a request.
-
-For a single container, Vercel detects the root-level `Dockerfile.vercel` and
-adds the catch-all route automatically; no `vercel.json` service configuration
-is needed. Set the project's Framework Preset to **Container** so this explicit
-Docker opt-in takes precedence over the Next.js detector. From the CLI:
-
-```bash
-vercel project update q4 --framework container
-```
-
-The image is about 1.2GB, so the deployment uses Vercel Large Functions on
-Fluid compute. New projects are enrolled automatically. For an older project,
-enable Large Functions when prompted or set `VERCEL_SUPPORT_LARGE_FUNCTIONS=1`
-in the Vercel project environment and redeploy.
-
-For reliable access to every language direction, select 4GB memory under
-**Project Settings → Functions → Function CPU**. The complete model set can
-reach roughly 3GB after different translation directions have warmed the same
-instance; Vercel Hobby is fixed at 2GB.
-
-### Any Docker host
-
-```bash
-docker build -f Dockerfile.vercel -t q4 .
-docker run -p 3000:3000 q4
-```
-
-The image bakes in both the dictionary and the models, so it runs with no outbound network:
-
-```bash
-docker run --network none -p 3000:3000 q4
-```
-
-The Docker build prints the assembled payload before exporting the image. Run
-`pnpm models:size` to get the same per-model report from the local cache. A
-current arm64 build is 1.20GB (1.12GiB) unpacked; the seven models are 778.2MiB
-of it. The amd64 image Vercel builds can differ slightly because ONNX Runtime's
-native library is architecture-specific.
-
-The models are copied into the final image one at a time. This is intentional:
-copying the whole 778MiB cache in one Docker instruction creates one oversized
-registry layer, which VCR rejects with HTTP 413. The build also disables
-onnxruntime-node's optional CUDA/TensorRT download because Vercel containers are
-CPU-only.
-
-Memory is the number to plan around. Models load lazily and stay resident, and an ONNX session costs
-far more than its weights on disk (~400MB of RSS per model against ~110MB of q8 weights). Measured in
-the container:
-
-| Loaded | Resident |
-|--------|----------|
-| none, just booted | 52 MiB |
-| 1 model (German → English) | 514 MiB |
-| 3 models (German → all) | 1.35 GiB |
-| all 7 (every direction used) | 2.92 GiB |
-
-So a container that only ever sees one direction is small, and one exercising all twelve wants ~3GB.
-Do not set a 1GB limit and expect every language pair to work.
-
-`MODEL_CACHE_DIR` points at the baked weights. `/api/health` reports the dictionary version and which
-models are resident without loading any, so it is safe as a probe — and useful for watching the table
-above fill up.
+The desktop shell opens `/translate` on its bundled local Next server. That local server owns the
+dictionary and model files, so the desktop app works without a network connection.
 
 ## API
 
@@ -207,9 +144,9 @@ curl -sX POST localhost:3000/api/analyze -H 'content-type: application/json' \
   -d '{"sentence":"Mir ist kalt."}'
 ```
 
-The app itself uses both endpoints: `/api/analyze` for the word breakdown and `/api/translate` for
-the sentence. The dictionary shards live in `data/dict` and are never web-served — nothing fetches
-them over HTTP, so there is no `public/` directory at all.
+The desktop app uses both endpoints: `/api/analyze` for the word breakdown and `/api/translate` for
+the sentence. The dictionary shards live in `data/dict` and are never web-served; `public/` contains
+only static website assets.
 
 ## How it fits together
 

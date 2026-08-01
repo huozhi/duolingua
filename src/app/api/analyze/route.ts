@@ -16,6 +16,8 @@ const MAX_LENGTH = 600;
  * web-served at all. Cheap: no model is involved, only shard reads off disk.
  */
 export async function POST(request: Request) {
+  if (process.env.VERCEL) return new NextResponse(null, { status: 404 });
+
   let body: unknown;
   try {
     body = await request.json();

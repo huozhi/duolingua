@@ -1,7 +1,7 @@
 .{
-    .id = "app.q4.translator",
+    .id = "app.duolingua.translator",
     .name = "native-shell",
-    .display_name = "q4",
+    .display_name = "duolingua",
     .version = "0.1.0",
     .icons = .{ "assets/icon.png" },
     .platforms = .{ "macos", "linux" },
@@ -12,7 +12,7 @@
         .entry = "index.html",
         .spa_fallback = true,
         .dev = .{
-            .url ="http://127.0.0.1:3000/",
+            .url ="http://127.0.0.1:3000/translate",
             .command = .{ "pnpm", "--dir", "..", "exec", "next", "dev", "--hostname", "127.0.0.1" },
             .ready_path = "/api/health",
             .timeout_ms = 30000,
@@ -32,6 +32,6 @@
     .web_engine = "system",
     .cef = .{ .dir = "third_party/cef/macos", .auto_install = false },
     .windows = .{
-        .{ .label = "main", .title = "q4", .width = 1040, .height = 680, .restore_state = false },
+        .{ .label = "main", .title = "duolingua", .width = 1040, .height = 680, .restore_state = false },
     },
 }

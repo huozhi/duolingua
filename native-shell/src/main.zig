@@ -10,7 +10,7 @@ const App = struct {
     fn app(self: *@This()) native_sdk.App {
         return .{
             .context = self,
-            .name = "q4",
+            .name = "duolingua",
             .source = native_sdk.frontend.productionSource(.{ .dist ="frontend/out" }),
             .source_fn = source,
         };
@@ -35,9 +35,9 @@ const app_origins = [_][]const u8{
 pub fn main(init: std.process.Init) !void {
     var app = App{ .env_map = init.environ_map };
     try runner.runWithOptions(app.app(), .{
-        .app_name = "q4",
-        .window_title = "q4",
-        .bundle_id = "app.q4.translator",
+        .app_name = "duolingua",
+        .window_title = "duolingua",
+        .bundle_id = "app.duolingua.translator",
         .icon_path = "assets/icon.png",
         .security = .{
             .navigation = .{ .allowed_origins = &app_origins },
@@ -46,5 +46,5 @@ pub fn main(init: std.process.Init) !void {
 }
 
 test "app name is configured" {
-    try std.testing.expectEqualStrings("q4", "q4");
+    try std.testing.expectEqualStrings("duolingua", "duolingua");
 }

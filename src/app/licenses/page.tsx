@@ -3,7 +3,7 @@ import Link from "next/link";
 import manifest from "../../../data/dict/manifest.json";
 
 export const metadata: Metadata = {
-  title: "Sources and licenses — q4",
+  title: "Sources and licenses — duolingua",
   description: "Where the dictionary and the translation models come from, and under which licenses.",
 };
 
@@ -20,7 +20,7 @@ export default function Licenses() {
   return (
     <div className="min-h-full bg-zinc-50 font-sans dark:bg-black">
       <main className="mx-auto w-full max-w-3xl px-6 py-12 sm:py-20">
-        <Link href="/" className="text-sm text-neutral-500 underline hover:text-neutral-800 dark:hover:text-neutral-200">
+        <Link href="/translate" className="text-sm text-neutral-500 underline hover:text-neutral-800 dark:hover:text-neutral-200">
           ← Back
         </Link>
 

@@ -7,7 +7,7 @@ native_dir="$project_dir/native-shell"
 native_sdk_dir="$project_dir/node_modules/@native-sdk/cli"
 package_dir="$native_dir/zig-out/package"
 output_dir="$project_dir/dist-desktop"
-output_app="$output_dir/q4.app"
+output_app="$output_dir/duolingua.app"
 
 cd "$project_dir"
 
@@ -36,10 +36,10 @@ contents_dir="$output_app/Contents"
 resources_dir="$contents_dir/Resources"
 server_dir="$resources_dir/server"
 
-mv "$contents_dir/MacOS/native-shell" "$contents_dir/MacOS/q4-native"
+mv "$contents_dir/MacOS/native-shell" "$contents_dir/MacOS/duolingua-native"
 xcrun clang -Os "$native_dir/launcher/desktop-launcher.c" \
-  -o "$contents_dir/MacOS/q4"
-plutil -replace CFBundleExecutable -string q4 "$contents_dir/Info.plist"
+  -o "$contents_dir/MacOS/duolingua"
+plutil -replace CFBundleExecutable -string duolingua "$contents_dir/Info.plist"
 
 mkdir -p "$server_dir/.next" "$resources_dir/runtime" "$resources_dir/launcher"
 ditto "$project_dir/.next/standalone" "$server_dir"

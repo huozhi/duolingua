@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "q4 — Four-language translator",
+  title: "duolingua — Four-language translator",
   description:
-    "Translate between German, English, Spanish and Chinese, privately and on your device.",
+    "An offline desktop translator for German, English, Spanish and Chinese.",
 };
 
 export const viewport: Viewport = {
