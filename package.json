@@ -33,5 +33,10 @@
     "@types/react-dom": "^19",
     "tailwindcss": "^4.3.3",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "onnxruntime-node": "1.23.2"
+    }
   }
 }
