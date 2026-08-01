@@ -1,14 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
   <title id="title">duolingua</title>
-  <desc id="description">Two overlapping speech bubbles.</desc>
+  <desc id="description">Three nested monochrome speech bubbles fading into the background.</desc>
+  <defs>
+    <filter id="far-blur" x="-20%" y="-20%" width="150%" height="160%">
+      <feGaussianBlur stdDeviation="16" />
+    </filter>
+    <filter id="near-blur" x="-20%" y="-20%" width="150%" height="160%">
+      <feGaussianBlur stdDeviation="6" />
+    </filter>
+    <path
+      id="bubble"
+      d="M160 290c0-100 81-181 181-181h386c100 0 181 81 181 181v300c0 87-62 160-144 177l50 104c6 13-7 25-19 17L632 769H341c-100 0-181-81-181-181Z"
+    />
+  </defs>
 
-  <rect width="1024" height="1024" fill="#f3eee5" />
-  <path
-    d="M130 258c0-100 81-181 181-181h344c100 0 181 81 181 181v150c0 100-81 181-181 181H408L218 719l40-135c-74-23-128-92-128-174Z"
-    fill="#28323e"
+  <use
+    href="#bubble"
+    transform="translate(-104 -104)"
+    fill="#8a8a8a"
+    fill-opacity="0.72"
+    filter="url(#far-blur)"
   />
-  <path
-    d="M188 608c0-100 81-181 181-181h344c100 0 181 81 181 181v151c0 83-56 153-132 174l39 100-165-93H369c-100 0-181-81-181-181Z"
-    fill="#1674ea"
+  <use
+    href="#bubble"
+    transform="translate(-52 -52)"
+    fill="#555555"
+    fill-opacity="0.88"
+    filter="url(#near-blur)"
   />
+  <use href="#bubble" fill="#202020" />
 </svg>

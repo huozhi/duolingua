@@ -32,7 +32,7 @@ export default function Home() {
                 href={RELEASES_URL}
                 className="font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-4 transition hover:decoration-neutral-900 dark:text-white dark:decoration-neutral-700 dark:hover:decoration-white"
               >
-                Download for macOS ↓
+                Download for macOS ↗
               </a>
               <a
                 href={REPOSITORY_URL}
