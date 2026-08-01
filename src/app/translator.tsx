@@ -18,7 +18,7 @@ type Submission = { sentence: string; source: Lang; run: number };
 
 export default function Translator() {
   const [sentence, setSentence] = useState("");
-  const [choice, setChoice] = useState<SourceChoice>("auto");
+  const [choice, setChoice] = useState<SourceChoice>("de");
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
