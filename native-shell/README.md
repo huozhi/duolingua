@@ -10,11 +10,10 @@ A minimal native-sdk desktop app with a web frontend.
 pnpm --dir frontend install
 ```
 
-The generated build defaults to this Native SDK framework path:
+The generated build uses the Native SDK package installed in the workspace:
 
 ```text
-/Users/huozhi/code/was-das/node_modules/.pnpm/@native-sdk+cli@0.6.1/node_modules/@native-sdk/cli
-
+../node_modules/@native-sdk/cli
 ```
 
 Override it with `-Dnative-sdk-path=/path/to/native-sdk` if you move this app.

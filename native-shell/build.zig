@@ -32,7 +32,7 @@ const PackageTarget = enum {
     linux,
 };
 
-const default_native_sdk_path ="/Users/huozhi/code/was-das/node_modules/.pnpm/@native-sdk+cli@0.6.1/node_modules/@native-sdk/cli";
+const default_native_sdk_path = "../node_modules/@native-sdk/cli";
 const app_exe_name = "native-shell";
 
 pub fn build(b: *std.Build) void {
@@ -55,7 +55,7 @@ pub fn build(b: *std.Build) void {
     const cef_dir_override = b.option([]const u8, "cef-dir", "Override CEF root directory for Chromium builds");
     const cef_auto_install_override = b.option(bool, "cef-auto-install", "Override app.zon CEF auto-install setting");
     const package_target = b.option(PackageTarget, "package-target", "Package target: macos, windows, linux") orelse .macos;
-    const native_sdk_path = b.option([]const u8, "native-sdk-path", "Path to the Native SDK framework checkout") orelse default_native_sdk_path;
+    const native_sdk_path = b.option([]const u8, "native-sdk-path", "Path to the Native SDK framework checkout") orelse nativeSdkDefaultPath(b);
     const package_optimize_name = @tagName(package_optimize);
     const selected_platform: PlatformOption = switch (platform_option) {
         .auto => if (target.result.os.tag == .macos) .macos else if (target.result.os.tag == .linux) .linux else if (target.result.os.tag == .windows) .windows else .@"null",
@@ -272,11 +272,36 @@ fn macosSdkPath(b: *std.Build) ?[]const u8 {
         .stderr_limit = .limited(4096),
     }) catch return null;
     defer b.allocator.free(result.stderr);
-    if (result.term != .exited or result.term.exited != 0) {
-        b.allocator.free(result.stdout);
+    if (result.term == .exited and result.term.exited == 0) {
+        return std.mem.trimEnd(u8, result.stdout, "\r\n");
+    }
+    b.allocator.free(result.stdout);
+
+    // xcrun can fail while Xcode itself is usable (for example, when one of
+    // its private helper frameworks is temporarily incompatible with the
+    // host OS). xcode-select is sufficient to locate the standard SDK in
+    // that case, so do not silently continue without a sysroot.
+    const developer_dir_result = std.process.run(b.allocator, b.graph.io, .{
+        .argv = &.{ "xcode-select", "-p" },
+        .stdout_limit = .limited(4096),
+        .stderr_limit = .limited(4096),
+    }) catch return null;
+    defer b.allocator.free(developer_dir_result.stderr);
+    if (developer_dir_result.term != .exited or developer_dir_result.term.exited != 0) {
+        b.allocator.free(developer_dir_result.stdout);
         return null;
     }
-    return std.mem.trimEnd(u8, result.stdout, "\r\n");
+    defer b.allocator.free(developer_dir_result.stdout);
+
+    const developer_dir = std.mem.trimEnd(u8, developer_dir_result.stdout, "\r\n");
+    if (developer_dir.len == 0) return null;
+    return b.pathJoin(&.{ developer_dir, "Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" });
+}
+
+fn nativeSdkDefaultPath(b: *std.Build) []const u8 {
+    // pnpm exposes workspace packages through symlinks. Resolve the link once
+    // because Zig's cache manifest can reject module files reached through it.
+    return std.Io.Dir.cwd().realPathFileAlloc(b.graph.io, default_native_sdk_path, b.allocator) catch default_native_sdk_path;
 }
 
 fn localModule(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, path: []const u8) *std.Build.Module {
