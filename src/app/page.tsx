@@ -27,18 +27,18 @@ export default function Home() {
               word-by-word breakdown of grammar, case, gender, and tense.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-3">
+            <div className="mt-9 flex flex-wrap gap-x-7 gap-y-3">
               <a
                 href={RELEASES_URL}
-                className="rounded-xl bg-neutral-900 px-5 py-3 font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+                className="font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-4 transition hover:decoration-neutral-900 dark:text-white dark:decoration-neutral-700 dark:hover:decoration-white"
               >
-                Download for macOS
+                Download for macOS ↓
               </a>
               <a
                 href={REPOSITORY_URL}
-                className="rounded-xl bg-neutral-200/70 px-5 py-3 font-medium text-neutral-700 transition hover:bg-neutral-200 hover:text-neutral-950 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white"
+                className="font-medium text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition hover:text-neutral-900 hover:decoration-neutral-900 dark:text-neutral-300 dark:decoration-neutral-700 dark:hover:text-white dark:hover:decoration-white"
               >
-                View on GitHub
+                View on GitHub ↗
               </a>
             </div>
           </div>

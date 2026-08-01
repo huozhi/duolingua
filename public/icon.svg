@@ -1,53 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
   <title id="title">duolingua</title>
-  <desc id="description">Two overlapping speech bubbles with four colorful language lines.</desc>
-  <defs>
-    <radialGradient id="background" cx="50%" cy="42%" r="72%">
-      <stop offset="0" stop-color="#fffdf8" />
-      <stop offset="1" stop-color="#eee7dc" />
-    </radialGradient>
-    <linearGradient id="charcoal" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#4b5664" />
-      <stop offset="1" stop-color="#202832" />
-    </linearGradient>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#4196ff" />
-      <stop offset="1" stop-color="#0864df" />
-    </linearGradient>
-    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#ff8165" />
-      <stop offset="1" stop-color="#f0442a" />
-    </linearGradient>
-    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#43d3ba" />
-      <stop offset="1" stop-color="#159f87" />
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="150%" height="170%">
-      <feDropShadow dx="0" dy="22" stdDeviation="20" flood-color="#332a20" flood-opacity="0.28" />
-    </filter>
-  </defs>
+  <desc id="description">Two overlapping speech bubbles.</desc>
 
-  <rect width="1024" height="1024" fill="url(#background)" />
-
-  <g filter="url(#shadow)">
-    <path
-      d="M112 252c0-91 74-165 165-165h376c91 0 165 74 165 165v173c0 91-74 165-165 165H394L197 728l45-138c-74-16-130-82-130-161Z"
-      fill="url(#charcoal)"
-      stroke="#202833"
-      stroke-width="6"
-      stroke-linejoin="round"
-    />
-    <rect x="235" y="250" width="354" height="62" rx="31" fill="url(#coral)" />
-    <rect x="235" y="365" width="248" height="62" rx="31" fill="url(#mint)" />
-
-    <path
-      d="M206 598c0-91 74-165 165-165h376c91 0 165 74 165 165v177c0 80-57 147-133 162l36 68-191-65H371c-91 0-165-74-165-165Z"
-      fill="url(#blue)"
-      stroke="#0759c6"
-      stroke-width="6"
-      stroke-linejoin="round"
-    />
-    <rect x="436" y="602" width="354" height="62" rx="31" fill="#fffdf8" fill-opacity="0.94" />
-    <rect x="542" y="717" width="248" height="62" rx="31" fill="url(#mint)" />
-  </g>
+  <rect width="1024" height="1024" fill="#f3eee5" />
+  <path
+    d="M130 258c0-100 81-181 181-181h344c100 0 181 81 181 181v150c0 100-81 181-181 181H408L218 719l40-135c-74-23-128-92-128-174Z"
+    fill="#28323e"
+  />
+  <path
+    d="M188 608c0-100 81-181 181-181h344c100 0 181 81 181 181v151c0 83-56 153-132 174l39 100-165-93H369c-100 0-181-81-181-181Z"
+    fill="#1674ea"
+  />
 </svg>
