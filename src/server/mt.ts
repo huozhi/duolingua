@@ -104,13 +104,16 @@ export type Translation = {
  * these models handle exactly one sentence per call and quietly drop the rest.
  */
 export async function translate(source: Lang, target: Lang, text: string): Promise<Translation> {
-  if (source === target) return { text: text.trim(), fromDictionary: false };
+  const trimmed = text.trim();
+  if (source === target || !/[\p{L}\p{N}]/u.test(trimmed)) {
+    return { text: trimmed, fromDictionary: false };
+  }
 
-  const fromDictionary = await dictionaryGloss(source, target, text);
+  const fromDictionary = await dictionaryGloss(source, target, trimmed);
   if (fromDictionary) return { text: fromDictionary, fromDictionary: true };
 
   const translated: string[] = [];
-  for (const sentence of splitSentences(text)) {
+  for (const sentence of splitSentences(trimmed)) {
     translated.push(await translateSentence(source, target, sentence));
   }
   return { text: joinSentences(translated), fromDictionary: false };

@@ -18,7 +18,7 @@ type Submission = { sentence: string; source: Lang; run: number };
 
 export default function Translator() {
   const [sentence, setSentence] = useState("");
-  const [choice, setChoice] = useState<SourceChoice>("de");
+  const [choice, setChoice] = useState<SourceChoice>("auto");
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,7 +76,7 @@ export default function Translator() {
                 submit(sentence, source);
               }
             }}
-            placeholder="Paste a sentence in German, English, Spanish or Chinese…"
+            placeholder="Deutsch · English · Español · 中文"
             maxLength={MAX_LENGTH}
             className="h-24 min-w-0 flex-1 resize-none rounded-xl border border-neutral-300 bg-white p-4 text-lg shadow-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900"
           />
