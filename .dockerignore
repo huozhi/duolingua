@@ -8,6 +8,7 @@ data/raw
 # Build output and dependencies, rebuilt inside the image.
 node_modules
 .next
+.vercel
 out
 .desktop-build
 .pnpm-store

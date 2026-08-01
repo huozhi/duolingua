@@ -127,11 +127,16 @@ regular serverless Next.js bundle. The container listens on Vercel's `$PORT` and
 includes the dictionary, all seven translation models and native ONNX Runtime.
 No model download happens while serving a request.
 
-`vercel.json` explicitly defines one container service and routes every request
-to it, so Vercel cannot fall back to a model-less Next.js Function deployment.
-The Vercel project's Framework Preset must be set to **Services**.
+For a single container, Vercel detects the root-level `Dockerfile.vercel` and
+adds the catch-all route automatically; no `vercel.json` service configuration
+is needed. Set the project's Framework Preset to **Container** so this explicit
+Docker opt-in takes precedence over the Next.js detector. From the CLI:
 
-The image is about 1.15GB, so the deployment uses Vercel Large Functions on
+```bash
+vercel project update q4 --framework container
+```
+
+The image is about 1.2GB, so the deployment uses Vercel Large Functions on
 Fluid compute. New projects are enrolled automatically. For an older project,
 enable Large Functions when prompted or set `VERCEL_SUPPORT_LARGE_FUNCTIONS=1`
 in the Vercel project environment and redeploy.
@@ -154,7 +159,17 @@ The image bakes in both the dictionary and the models, so it runs with no outbou
 docker run --network none -p 3000:3000 q4
 ```
 
-Expect ~1.15GB on disk — the seven models are 780MB of it.
+The Docker build prints the assembled payload before exporting the image. Run
+`pnpm models:size` to get the same per-model report from the local cache. A
+current arm64 build is 1.20GB (1.12GiB) unpacked; the seven models are 778.2MiB
+of it. The amd64 image Vercel builds can differ slightly because ONNX Runtime's
+native library is architecture-specific.
+
+The models are copied into the final image one at a time. This is intentional:
+copying the whole 778MiB cache in one Docker instruction creates one oversized
+registry layer, which VCR rejects with HTTP 413. The build also disables
+onnxruntime-node's optional CUDA/TensorRT download because Vercel containers are
+CPU-only.
 
 Memory is the number to plan around. Models load lazily and stay resident, and an ONNX session costs
 far more than its weights on disk (~400MB of RSS per model against ~110MB of q8 weights). Measured in

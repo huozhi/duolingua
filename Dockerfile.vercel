@@ -15,6 +15,9 @@ WORKDIR /app
 RUN npm install --global pnpm@10
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Vercel containers are CPU-only. onnxruntime-node otherwise downloads about
+# 317MB of unused CUDA and TensorRT providers on linux/amd64.
+ENV ONNXRUNTIME_NODE_INSTALL=skip
 RUN pnpm install --frozen-lockfile
 
 # ── build ─────────────────────────────────────────────────────────────────────
@@ -33,7 +36,7 @@ COPY package.json ./
 COPY scripts ./scripts
 COPY src ./src
 ENV MODEL_CACHE_DIR=/models
-RUN node scripts/fetch-models.ts
+RUN node scripts/fetch-models.ts && node scripts/report-model-sizes.ts
 
 # ── runtime ───────────────────────────────────────────────────────────────────
 FROM node:24-slim AS runtime
@@ -46,7 +49,20 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/data/dict ./data/dict
-COPY --from=models --chown=node:node /models /models
+
+# VCR rejects a single ~778MiB model layer with HTTP 413. Keep each model in a
+# separate ~106–114MiB layer while preserving Transformers.js's cache layout.
+COPY --from=models --chown=node:node /models/Xenova/opus-mt-de-en /models/Xenova/opus-mt-de-en
+COPY --from=models --chown=node:node /models/Xenova/opus-mt-de-es /models/Xenova/opus-mt-de-es
+COPY --from=models --chown=node:node /models/Xenova/opus-mt-en-de /models/Xenova/opus-mt-en-de
+COPY --from=models --chown=node:node /models/Xenova/opus-mt-en-es /models/Xenova/opus-mt-en-es
+COPY --from=models --chown=node:node /models/Xenova/opus-mt-en-zh /models/Xenova/opus-mt-en-zh
+COPY --from=models --chown=node:node /models/Xenova/opus-mt-es-en /models/Xenova/opus-mt-es-en
+COPY --from=models --chown=node:node /models/Xenova/opus-mt-zh-en /models/Xenova/opus-mt-zh-en
+
+# Keep the deploy-time payload visible in build logs. The model report above is
+# exact; these figures include the standalone app and Node runtime directories.
+RUN du -sh /models /app /usr/local
 
 USER node
 

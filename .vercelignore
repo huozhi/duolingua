@@ -1,0 +1,24 @@
+# Raw dictionary sources and the local model cache are recreated or copied by
+# Dockerfile.vercel. Uploading them can exceed Vercel's source size limit.
+data/raw
+.cache
+
+# Dependencies and build output are rebuilt inside the image.
+node_modules
+.next
+.vercel
+out
+.desktop-build
+.pnpm-store
+dist-desktop
+native-shell
+*.tgz
+tsconfig.tsbuildinfo
+
+# Repository and machine-local files.
+.git
+.gitignore
+README.md
+*.log
+.DS_Store
+.env*
