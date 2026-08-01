@@ -34,13 +34,17 @@ jobs:
           - runner: macos-15
             arch: arm64
             uname-arch: arm64
+            zig-arch: aarch64
+            zig-sha256: b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489
           - runner: macos-15-intel
             arch: x64
             uname-arch: x86_64
+            zig-arch: x86_64
+            zig-sha256: 0387557ed1877bc6a2e1802c8391953baddba76081876301c522f52977b52ba7
 
     steps:
       - name: Check out release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ env.RELEASE_TAG }}
           fetch-depth: 0
@@ -70,27 +74,40 @@ jobs:
           test "$(uname -m)" = "${{ matrix.uname-arch }}"
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6.0.9
         with:
           version: 10
           run_install: false
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
           cache: pnpm
 
       - name: Set up Zig
-        uses: mlugg/setup-zig@v2
-        with:
-          version: 0.16.0
+        shell: bash
+        env:
+          ZIG_ARCH: ${{ matrix.zig-arch }}
+          ZIG_SHA256: ${{ matrix.zig-sha256 }}
+        run: |
+          set -euo pipefail
+
+          zig_directory="$RUNNER_TEMP/zig-${ZIG_ARCH}-macos-0.16.0"
+          zig_archive="$RUNNER_TEMP/zig-${ZIG_ARCH}-macos-0.16.0.tar.xz"
+          curl --fail --location --retry 3 \
+            --output "$zig_archive" \
+            "https://ziglang.org/download/0.16.0/zig-${ZIG_ARCH}-macos-0.16.0.tar.xz"
+          printf '%s  %s\n' "$ZIG_SHA256" "$zig_archive" | shasum -a 256 --check -
+          tar -xf "$zig_archive" -C "$RUNNER_TEMP"
+          echo "$zig_directory" >> "$GITHUB_PATH"
+          "$zig_directory/zig" version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Restore translation models
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: .cache
           key: translation-models-v1-${{ hashFiles('pnpm-lock.yaml', 'src/lib/mt-models.ts') }}
@@ -256,7 +273,7 @@ jobs:
           shasum -a 256 "$(basename "${{ steps.artifact.outputs.dmg }}")" > "$(basename "${{ steps.artifact.outputs.checksum }}")"
 
       - name: Upload release assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: duolingua-macos-${{ matrix.arch }}
           path: |
@@ -275,13 +292,13 @@ jobs:
 
     steps:
       - name: Check out release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ env.RELEASE_TAG }}
           fetch-depth: 0
 
       - name: Download release assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           pattern: duolingua-macos-*
           path: release
