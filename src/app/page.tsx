@@ -17,12 +17,11 @@ export default function Home() {
             <p className="mb-5 text-sm font-medium uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">
               Private. Offline. On your Mac.
             </p>
-            <h1 className="text-5xl font-bold tracking-tight sm:text-7xl">
-              Four languages,
-              <br />
-              one focused translator.
-            </h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-neutral-600 dark:text-neutral-300">
+            <h1 className="text-5xl font-bold tracking-tight sm:text-7xl">duolingua</h1>
+            <p className="mt-5 text-2xl font-medium tracking-tight text-neutral-800 dark:text-neutral-100">
+              Four languages. One focused translator.
+            </p>
+            <p className="mt-4 max-w-xl text-lg leading-8 text-neutral-600 dark:text-neutral-300">
               Translate between German, English, Spanish, and Chinese. German text also gets a
               word-by-word breakdown of grammar, case, gender, and tense.
             </p>
