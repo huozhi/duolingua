@@ -1,29 +1,73 @@
-name: Release desktop app
+name: Release macOS app
 
 on:
   push:
     tags:
-      - "v*"
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing vX.Y.Z tag to build and release
+        required: true
+        type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: desktop-release-${{ github.ref }}
+  group: macos-release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
   cancel-in-progress: false
 
 env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
   NATIVE_SDK_PATH: ${{ github.workspace }}/node_modules/@native-sdk/cli
 
 jobs:
-  macos-dmg:
-    name: macOS DMG
-    runs-on: macos-14
-    timeout-minutes: 45
+  build:
+    name: Build macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+            uname-arch: arm64
+          - runner: macos-15-intel
+            arch: x64
+            uname-arch: x86_64
 
     steps:
-      - name: Check out duolingua
+      - name: Check out release tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+
+      - name: Validate release version and architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must use vX.Y.Z, received: $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+          version="${RELEASE_TAG#v}"
+          package_version="$(node -p "require('./package.json').version")"
+          app_version="$(awk -F '"' '/\.version =/ { print $2; exit }' native-shell/app.zon)"
+
+          test "$version" = "$package_version" || {
+            echo "Tag $RELEASE_TAG does not match package.json version $package_version" >&2
+            exit 1
+          }
+          test "$version" = "$app_version" || {
+            echo "Tag $RELEASE_TAG does not match native-shell/app.zon version $app_version" >&2
+            exit 1
+          }
+          test "$(uname -m)" = "${{ matrix.uname-arch }}"
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -45,49 +89,92 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Restore translation models
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: translation-models-v1-${{ hashFiles('pnpm-lock.yaml', 'src/lib/mt-models.ts') }}
+
       - name: Fetch translation models
         run: pnpm models:fetch
 
       - name: Build standalone desktop app
         run: pnpm desktop:pack
 
-      - name: Prepare app
-        id: app
+      - name: Prepare app and artifact paths
+        id: artifact
         shell: bash
         run: |
           set -euo pipefail
+
           app_path="dist-desktop/duolingua.app"
           test -d "$app_path"
+          test -d "$app_path/Contents/Resources/models"
+          test -d "$app_path/Contents/Resources/server/data/dict"
 
           mkdir -p release/dmg
-          cp -R "$app_path" release/dmg/duolingua.app
+          ditto "$app_path" release/dmg/duolingua.app
           ln -s /Applications release/dmg/Applications
 
-          arch="$(uname -m)"
-          dmg="release/duolingua-${GITHUB_REF_NAME}-macos-${arch}.dmg"
+          dmg="release/duolingua-${RELEASE_TAG}-macos-${{ matrix.arch }}.dmg"
+          checksum="${dmg}.sha256"
           echo "app=release/dmg/duolingua.app" >> "$GITHUB_OUTPUT"
           echo "dmg=$dmg" >> "$GITHUB_OUTPUT"
+          echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
 
       - name: Check signing configuration
         id: signing
         shell: bash
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          if [ -n "$MACOS_CERTIFICATE" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+
+          signing_values=(
+            "$MACOS_CERTIFICATE"
+            "$MACOS_CERTIFICATE_PASSWORD"
+            "$KEYCHAIN_PASSWORD"
+            "$MACOS_SIGNING_IDENTITY"
+          )
+          notarization_values=(
+            "$APPLE_ID"
+            "$APPLE_APP_PASSWORD"
+            "$APPLE_TEAM_ID"
+          )
+
+          signing_count=0
+          for value in "${signing_values[@]}"; do
+            [ -n "$value" ] && signing_count=$((signing_count + 1))
+          done
+
+          notarization_count=0
+          for value in "${notarization_values[@]}"; do
+            [ -n "$value" ] && notarization_count=$((notarization_count + 1))
+          done
+
+          if [ "$signing_count" -ne 0 ] && [ "$signing_count" -ne 4 ]; then
+            echo "Configure all four macOS signing secrets or none of them." >&2
+            exit 1
+          fi
+          if [ "$notarization_count" -ne 0 ] && [ "$notarization_count" -ne 3 ]; then
+            echo "Configure all three Apple notarization secrets or none of them." >&2
+            exit 1
+          fi
+          if [ "$notarization_count" -eq 3 ] && [ "$signing_count" -ne 4 ]; then
+            echo "Notarization requires Developer ID signing secrets." >&2
+            exit 1
           fi
 
-          if [ -n "$MACOS_CERTIFICATE" ] && [ -n "$APPLE_ID" ]; then
-            echo "notarize=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "notarize=false" >> "$GITHUB_OUTPUT"
-          fi
+          [ "$signing_count" -eq 4 ] && echo "enabled=true" >> "$GITHUB_OUTPUT" || echo "enabled=false" >> "$GITHUB_OUTPUT"
+          [ "$notarization_count" -eq 3 ] && echo "notarize=true" >> "$GITHUB_OUTPUT" || echo "notarize=false" >> "$GITHUB_OUTPUT"
 
-      - name: Import signing certificate
+      - name: Import Developer ID certificate
         if: ${{ steps.signing.outputs.enabled == 'true' }}
         shell: bash
         env:
@@ -122,21 +209,20 @@ jobs:
           SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
         run: |
           set -euo pipefail
-          test -n "$SIGNING_IDENTITY"
           codesign \
             --deep \
             --force \
             --options runtime \
             --timestamp \
             --sign "$SIGNING_IDENTITY" \
-            "${{ steps.app.outputs.app }}"
-          codesign --verify --deep --strict --verbose=2 "${{ steps.app.outputs.app }}"
+            "${{ steps.artifact.outputs.app }}"
+          codesign --verify --deep --strict --verbose=2 "${{ steps.artifact.outputs.app }}"
 
       - name: Ad-hoc sign app
         if: ${{ steps.signing.outputs.enabled != 'true' }}
         run: |
-          codesign --deep --force --sign - "${{ steps.app.outputs.app }}"
-          codesign --verify --deep --strict --verbose=2 "${{ steps.app.outputs.app }}"
+          codesign --deep --force --sign - "${{ steps.artifact.outputs.app }}"
+          codesign --verify --deep --strict --verbose=2 "${{ steps.artifact.outputs.app }}"
 
       - name: Create DMG
         run: |
@@ -145,7 +231,7 @@ jobs:
             -srcfolder release/dmg \
             -ov \
             -format UDZO \
-            "${{ steps.app.outputs.dmg }}"
+            "${{ steps.artifact.outputs.dmg }}"
 
       - name: Notarize DMG
         if: ${{ steps.signing.outputs.notarize == 'true' }}
@@ -155,34 +241,75 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
-          xcrun notarytool submit "${{ steps.app.outputs.dmg }}" \
+          xcrun notarytool submit "${{ steps.artifact.outputs.dmg }}" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
-          xcrun stapler staple "${{ steps.app.outputs.dmg }}"
-          xcrun stapler validate "${{ steps.app.outputs.dmg }}"
+          xcrun stapler staple "${{ steps.artifact.outputs.dmg }}"
+          xcrun stapler validate "${{ steps.artifact.outputs.dmg }}"
 
       - name: Create checksum
         shell: bash
         run: |
           cd release
-          shasum -a 256 "$(basename "${{ steps.app.outputs.dmg }}")" > SHA256SUMS.txt
+          shasum -a 256 "$(basename "${{ steps.artifact.outputs.dmg }}")" > "$(basename "${{ steps.artifact.outputs.checksum }}")"
+
+      - name: Upload release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: duolingua-macos-${{ matrix.arch }}
+          path: |
+            ${{ steps.artifact.outputs.dmg }}
+            ${{ steps.artifact.outputs.checksum }}
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: duolingua-macos-*
+          path: release
+          merge-multiple: true
+
+      - name: Verify checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          for checksum in *.sha256; do
+            sha256sum --check "$checksum"
+          done
+          cat *.sha256 > SHA256SUMS.txt
 
       - name: Publish GitHub Release
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" \
-              "${{ steps.app.outputs.dmg }}" \
-              release/SHA256SUMS.txt \
-              --clobber
+          set -euo pipefail
+          assets=(release/*.dmg release/SHA256SUMS.txt)
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
           else
-            gh release create "$GITHUB_REF_NAME" \
-              "${{ steps.app.outputs.dmg }}" \
-              release/SHA256SUMS.txt \
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
               --verify-tag \
               --generate-notes \
-              --title "duolingua $GITHUB_REF_NAME"
+              --title "duolingua $RELEASE_TAG"
           fi
